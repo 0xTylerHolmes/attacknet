@@ -5,7 +5,6 @@ go 1.21
 toolchain go1.21.3
 
 require (
-	github.com/alecthomas/kong v0.8.1
 	github.com/attestantio/go-eth2-client v0.19.10
 	github.com/chaos-mesh/chaos-mesh/api v0.0.0-20240104130649-f55576898805
 	github.com/ethereum/go-ethereum v1.13.8
@@ -14,6 +13,8 @@ require (
 	github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409
 	github.com/rs/zerolog v1.29.1
 	github.com/sirupsen/logrus v1.9.3
+	github.com/stretchr/testify v1.8.4
+	github.com/urfave/cli/v2 v2.25.7
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.29.0
 	k8s.io/apimachinery v0.29.0
@@ -32,6 +33,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/consensys/bavard v0.1.13 // indirect
 	github.com/consensys/gnark-crypto v0.12.1 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/crate-crypto/go-kzg-4844 v0.7.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
@@ -100,15 +102,16 @@ require (
 	github.com/prysmaticlabs/go-bitfield v0.0.0-20210809151128-385d8c5e3fb7 // indirect
 	github.com/r3labs/sse/v2 v2.10.0 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.5.1 // indirect
-	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/supranational/blst v0.3.11 // indirect
 	github.com/tklauser/go-sysconf v0.3.13 // indirect
 	github.com/tklauser/numcpus v0.7.0 // indirect
 	github.com/ulikunitz/xz v0.5.11 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
+	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	github.com/yusufpapurcu/wmi v1.2.3 // indirect
 	go.opentelemetry.io/otel v1.19.0 // indirect
 	go.opentelemetry.io/otel/metric v1.19.0 // indirect

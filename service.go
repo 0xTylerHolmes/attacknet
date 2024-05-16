@@ -138,5 +138,6 @@ func (s *Service) StartTestSuite(ctx context.Context) error {
 	}
 
 	//TODO: do we really need to destroy the enclave?
-	return s.KurtosisService.DestroyEnclave(ctx)
+	//return s.KurtosisService.DestroyEnclave(ctx)
+	return nil
 }
