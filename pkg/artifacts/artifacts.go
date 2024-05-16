@@ -1,7 +1,7 @@
 package artifacts
 
 import (
-	chaosMesh "attacknet/cmd/pkg/chaos-mesh"
+	chaosMesh "attacknet/cmd/internal/pkg/chaos/chaos-mesh"
 	"attacknet/cmd/pkg/health"
 	healthTypes "attacknet/cmd/pkg/health/types"
 	"attacknet/cmd/pkg/types"

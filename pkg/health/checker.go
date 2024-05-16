@@ -1,10 +1,10 @@
 package health
 
 import (
-	chaos_mesh "attacknet/cmd/pkg/chaos-mesh"
+	"attacknet/cmd/internal/pkg/chaos/chaos-mesh"
+	"attacknet/cmd/internal/pkg/kubernetes"
 	"attacknet/cmd/pkg/health/ethereum"
 	"attacknet/cmd/pkg/health/types"
-	"attacknet/cmd/pkg/kubernetes"
 	confTypes "attacknet/cmd/pkg/types"
 	"context"
 	"github.com/kurtosis-tech/stacktrace"

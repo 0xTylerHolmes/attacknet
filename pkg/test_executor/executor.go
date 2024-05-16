@@ -1,7 +1,7 @@
 package test_executor
 
 import (
-	chaos_mesh "attacknet/cmd/pkg/chaos-mesh"
+	chaos_mesh2 "attacknet/cmd/internal/pkg/chaos/chaos-mesh"
 	"attacknet/cmd/pkg/types"
 	"context"
 	"errors"
@@ -12,14 +12,14 @@ import (
 )
 
 type TestExecutor struct {
-	chaosClient   *chaos_mesh.ChaosClient
+	chaosClient   *chaos_mesh2.ChaosClient
 	testName      string
 	planSteps     []types.PlanStep
-	faultSessions []*chaos_mesh.FaultSession
+	faultSessions []*chaos_mesh2.FaultSession
 	planCompleted bool
 }
 
-func CreateTestExecutor(chaosClient *chaos_mesh.ChaosClient, test types.SuiteTest) *TestExecutor {
+func CreateTestExecutor(chaosClient *chaos_mesh2.ChaosClient, test types.SuiteTest) *TestExecutor {
 	return &TestExecutor{chaosClient: chaosClient, testName: test.TestName, planSteps: test.PlanSteps}
 }
 
@@ -67,17 +67,17 @@ func (te *TestExecutor) RunTestPlan(ctx context.Context) error {
 	return nil
 }
 
-func (te *TestExecutor) GetPodsUnderTest() ([]*chaos_mesh.PodUnderTest, error) {
+func (te *TestExecutor) GetPodsUnderTest() ([]*chaos_mesh2.PodUnderTest, error) {
 	if !te.planCompleted {
 		return nil, stacktrace.NewError("test %s has not been executed yet. cannot determine pods under test", te.testName)
 	}
-	pods := make(map[string]*chaos_mesh.PodUnderTest)
-	var retPods []*chaos_mesh.PodUnderTest
+	pods := make(map[string]*chaos_mesh2.PodUnderTest)
+	var retPods []*chaos_mesh2.PodUnderTest
 
 	for _, session := range te.faultSessions {
 		for _, pod := range session.PodsUnderTest {
 			if val, ok := pods[pod.Name]; !ok {
-				p := &chaos_mesh.PodUnderTest{
+				p := &chaos_mesh2.PodUnderTest{
 					Name:           pod.Name,
 					Labels:         pod.Labels,
 					ExpectDeath:    pod.ExpectDeath,
@@ -139,7 +139,7 @@ func (te *TestExecutor) runWaitForDuration(step PlanStepWait) error {
 	return nil
 }
 
-func waitForInjectionCompleted(ctx context.Context, session *chaos_mesh.FaultSession) error {
+func waitForInjectionCompleted(ctx context.Context, session *chaos_mesh2.FaultSession) error {
 	// First, wait 10 seconds to allow chaos-mesh to inject into the cluster.
 	// If injection isn't complete after 10 seconds, something is  wrong and we should terminate.
 	timeoutAt := time.Now().Add(time.Second * 10)
@@ -159,23 +159,23 @@ func waitForInjectionCompleted(ctx context.Context, session *chaos_mesh.FaultSes
 		}
 
 		switch status {
-		case chaos_mesh.InProgress:
+		case chaos_mesh2.InProgress:
 			log.Info("Fault injected successfully")
 			return nil
-		case chaos_mesh.Stopping:
+		case chaos_mesh2.Stopping:
 			log.Warn("Fault changed to 'stopping' state immediately after injection. May indicate something is wrong.")
 			return nil
-		case chaos_mesh.Starting:
+		case chaos_mesh2.Starting:
 			if !session.TargetSelectionCompleted {
 				if time.Now().After(targetingGracePeriod) {
 					errmsg := "chaos-mesh was unable to identify any pods for injection based on the configured criteria"
 					return stacktrace.NewError(errmsg)
 				}
 			}
-		case chaos_mesh.Error:
+		case chaos_mesh2.Error:
 			errmsg := "there was an unspecified error returned by chaos-mesh. inspect the fault resource"
 			return stacktrace.NewError(errmsg)
-		case chaos_mesh.Completed:
+		case chaos_mesh2.Completed:
 			// occurs for faults that perform an action immediately then terminate. (killing pods, etc)
 			log.Info("Fault injected successfully")
 			return nil
@@ -186,7 +186,7 @@ func waitForInjectionCompleted(ctx context.Context, session *chaos_mesh.FaultSes
 	}
 }
 
-func waitForFaultRecovery(ctx context.Context, session *chaos_mesh.FaultSession) error {
+func waitForFaultRecovery(ctx context.Context, session *chaos_mesh2.FaultSession) error {
 	for {
 		status, err := session.GetStatus(ctx)
 		if err != nil {
@@ -194,16 +194,16 @@ func waitForFaultRecovery(ctx context.Context, session *chaos_mesh.FaultSession)
 		}
 
 		switch status {
-		case chaos_mesh.InProgress:
+		case chaos_mesh2.InProgress:
 			log.Infof("The fault is still finishing up. Sleeping for 10s")
 			time.Sleep(10 * time.Second)
-		case chaos_mesh.Stopping:
+		case chaos_mesh2.Stopping:
 			log.Infof("The fault is being stopped. Sleeping for 10s")
 			time.Sleep(10 * time.Second)
-		case chaos_mesh.Error:
+		case chaos_mesh2.Error:
 			log.Errorf("there was an error returned by chaos-mesh")
 			return errors.New("there was an unspecified error returned by chaos-mesh. inspect the fault resource")
-		case chaos_mesh.Completed:
+		case chaos_mesh2.Completed:
 			log.Infof("The fault terminated successfully!")
 			return nil
 		default:

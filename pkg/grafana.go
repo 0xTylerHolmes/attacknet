@@ -1,7 +1,7 @@
 package pkg
 
 import (
-	"attacknet/cmd/pkg/kubernetes"
+	"attacknet/cmd/internal/pkg/kubernetes"
 	"attacknet/cmd/pkg/types"
 	"context"
 	"fmt"

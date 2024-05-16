@@ -1,10 +1,10 @@
 package pkg
 
 import (
+	"attacknet/cmd/internal/pkg/chaos/chaos-mesh"
+	"attacknet/cmd/internal/pkg/kubernetes"
 	"attacknet/cmd/pkg/artifacts"
-	chaos_mesh "attacknet/cmd/pkg/chaos-mesh"
 	"attacknet/cmd/pkg/health"
-	"attacknet/cmd/pkg/kubernetes"
 	"attacknet/cmd/pkg/runtime"
 	"attacknet/cmd/pkg/test_executor"
 	"attacknet/cmd/pkg/types"

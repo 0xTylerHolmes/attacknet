@@ -1,7 +1,7 @@
 package ethereum
 
 import (
-	"attacknet/cmd/pkg/kubernetes"
+	"attacknet/cmd/internal/pkg/kubernetes"
 	"context"
 	log "github.com/sirupsen/logrus"
 	"time"
