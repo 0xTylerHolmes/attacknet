@@ -1,4 +1,4 @@
-package types
+package chaos
 
 import "time"
 
@@ -23,8 +23,10 @@ type HarnessConfigParsed struct {
 	NetworkConfig  []byte
 }
 
-type SuiteTestConfigs struct {
+type Config struct {
 	Tests []SuiteTest `yaml:"tests"`
+	// StartNewDevnet specifies whether the experiment should be run on a fresh devnet
+	StartNewDevnet bool `yaml:"start_new_devnet"`
 }
 
 type HealthCheckConfig struct {
@@ -38,17 +40,17 @@ type SuiteTest struct {
 	HealthConfig HealthCheckConfig `yaml:"health"`
 }
 
-type Config struct {
-	AttacknetConfig AttacknetConfig  `yaml:"attacknetConfig"`
-	HarnessConfig   HarnessConfig    `yaml:"harnessConfig"`
-	TestConfig      SuiteTestConfigs `yaml:"testConfig"`
-}
+//type Config struct {
+//	AttacknetConfig AttacknetConfig  `yaml:"attacknetConfig"`
+//	HarnessConfig   HarnessConfig    `yaml:"harnessConfig"`
+//	TestConfig      Config `yaml:"testConfig"`
+//}
 
-type ConfigParsed struct {
-	AttacknetConfig AttacknetConfig
-	HarnessConfig   HarnessConfigParsed
-	TestConfig      SuiteTestConfigs
-}
+//type ConfigParsed struct {
+//	AttacknetConfig AttacknetConfig
+//	HarnessConfig   HarnessConfigParsed
+//	TestConfig      Config
+//}
 
 type StepType string
 

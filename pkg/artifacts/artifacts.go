@@ -1,10 +1,10 @@
 package artifacts
 
 import (
+	"attacknet/cmd/internal/pkg/chaos"
 	chaosMesh "attacknet/cmd/internal/pkg/chaos/chaos-mesh"
 	"attacknet/cmd/pkg/health"
 	healthTypes "attacknet/cmd/pkg/health/types"
-	"attacknet/cmd/pkg/types"
 	"errors"
 	"fmt"
 	"github.com/kurtosis-tech/stacktrace"
@@ -25,7 +25,7 @@ type TestArtifact struct {
 func BuildTestArtifact(
 	healthResults *healthTypes.HealthCheckResult,
 	podsUnderTest []*chaosMesh.PodUnderTest,
-	test types.SuiteTest,
+	test chaos.SuiteTest,
 ) *TestArtifact {
 
 	var containersTargeted []string

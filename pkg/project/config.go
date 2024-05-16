@@ -1,7 +1,7 @@
 package project
 
 import (
-	"attacknet/cmd/pkg/types"
+	"attacknet/cmd/internal/pkg/chaos"
 	"github.com/kurtosis-tech/stacktrace"
 	log "github.com/sirupsen/logrus"
 	yaml "gopkg.in/yaml.v3"
@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 )
 
-func defaultConfig() *types.Config {
-	cfg := types.Config{
-		AttacknetConfig: types.AttacknetConfig{
+func defaultConfig() *chaos.Config {
+	cfg := chaos.Config{
+		AttacknetConfig: chaos.AttacknetConfig{
 			WaitBeforeInjectionSeconds: 0,
 			ExistingDevnetNamespace:    "",
 			ReuseDevnetBetweenRuns:     true,
@@ -21,7 +21,7 @@ func defaultConfig() *types.Config {
 	return &cfg
 }
 
-func LoadSuiteConfigFromName(suiteName string) (*types.ConfigParsed, error) {
+func LoadSuiteConfigFromName(suiteName string) (*chaos.ConfigParsed, error) {
 	dir, err := os.Getwd()
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func LoadSuiteConfigFromName(suiteName string) (*types.ConfigParsed, error) {
 	return cfg, nil
 }
 
-func loadSuiteFromPath(path string) (*types.ConfigParsed, error) {
+func loadSuiteFromPath(path string) (*chaos.ConfigParsed, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "Could not read test suite on %s. is the project initialized?", path)
@@ -61,9 +61,9 @@ func loadSuiteFromPath(path string) (*types.ConfigParsed, error) {
 		return nil, stacktrace.Propagate(err, "Could not read the NetworkConfigPath file at %s", networkConfigPathFull)
 	}
 
-	cfgParsed := &types.ConfigParsed{
+	cfgParsed := &chaos.ConfigParsed{
 		AttacknetConfig: cfg.AttacknetConfig,
-		HarnessConfig: types.HarnessConfigParsed{
+		HarnessConfig: chaos.HarnessConfigParsed{
 			NetworkType:    cfg.HarnessConfig.NetworkType,
 			NetworkPackage: cfg.HarnessConfig.NetworkPackage,
 			NetworkConfig:  packageConfig,

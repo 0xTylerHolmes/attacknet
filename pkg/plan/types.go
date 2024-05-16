@@ -13,6 +13,8 @@ type PlannerConfig struct {
 	KurtosisPackage     string                          `yaml:"kurtosis_package"`
 	KubernetesNamespace string                          `yaml:"kubernetes_namespace"`
 	FaultConfig         suite.PlannerFaultConfiguration `yaml:"fault_config"`
+	// Whether this suite should run on a clean devnet or just attach to an existing one
+	StartNewDevnet bool `yaml:"start_new_devnet"`
 }
 
 func (c *PlannerConfig) IsTargetExecutionClient() bool {

@@ -1,8 +1,8 @@
 package pkg
 
 import (
+	"attacknet/cmd/internal/pkg/chaos"
 	"attacknet/cmd/internal/pkg/kubernetes"
-	"attacknet/cmd/pkg/types"
 	"context"
 	"fmt"
 	grafanaSdk "github.com/grafana-tools/sdk"
@@ -18,7 +18,7 @@ type GrafanaTunnel struct {
 	cleanedUp                bool
 }
 
-func CreateGrafanaClient(ctx context.Context, kubeClient *kubernetes.KubeClient, config types.AttacknetConfig) (*GrafanaTunnel, error) {
+func CreateGrafanaClient(ctx context.Context, kubeClient *kubernetes.KubeClient, config chaos.AttacknetConfig) (*GrafanaTunnel, error) {
 	podName := config.GrafanaPodName
 	exists, err := kubeClient.PodExists(ctx, podName)
 	if err != nil {

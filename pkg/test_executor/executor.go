@@ -1,8 +1,8 @@
 package test_executor
 
 import (
+	"attacknet/cmd/internal/pkg/chaos"
 	chaos_mesh2 "attacknet/cmd/internal/pkg/chaos/chaos-mesh"
-	"attacknet/cmd/pkg/types"
 	"context"
 	"errors"
 	"github.com/kurtosis-tech/stacktrace"
@@ -14,12 +14,12 @@ import (
 type TestExecutor struct {
 	chaosClient   *chaos_mesh2.ChaosClient
 	testName      string
-	planSteps     []types.PlanStep
+	planSteps     []chaos.PlanStep
 	faultSessions []*chaos_mesh2.FaultSession
 	planCompleted bool
 }
 
-func CreateTestExecutor(chaosClient *chaos_mesh2.ChaosClient, test types.SuiteTest) *TestExecutor {
+func CreateTestExecutor(chaosClient *chaos_mesh2.ChaosClient, test chaos.SuiteTest) *TestExecutor {
 	return &TestExecutor{chaosClient: chaosClient, testName: test.TestName, planSteps: test.PlanSteps}
 }
 
@@ -34,21 +34,21 @@ func (te *TestExecutor) RunTestPlan(ctx context.Context) error {
 		}
 		log.Infof("Running test step (%d/%d): '%s'", i+1, len(te.planSteps), genericStep.StepDescription)
 		switch genericStep.StepType {
-		case types.InjectFault:
+		case chaos.InjectFault:
 			var s PlanStepSingleFault
 			err = yaml.Unmarshal(marshalledSpec, &s)
 			if err != nil {
 				return stacktrace.Propagate(err, "could not unmarshal injectFault step from plan")
 			}
 			err = te.runInjectFaultStep(ctx, s) // check err after switch
-		case types.WaitForFaultCompletion:
+		case chaos.WaitForFaultCompletion:
 			var s PlanStepWaitForFaultCompletion
 			err = yaml.Unmarshal(marshalledSpec, &s)
 			if err != nil {
 				return stacktrace.Propagate(err, "could not unmarshal waitForFaultCompletion step from plan")
 			}
 			err = te.runWaitForFaultCompletion(ctx, s)
-		case types.WaitForDuration:
+		case chaos.WaitForDuration:
 			var s PlanStepWait
 			err = yaml.Unmarshal(marshalledSpec, &s)
 			if err != nil {
