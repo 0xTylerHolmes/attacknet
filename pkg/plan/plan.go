@@ -1,9 +1,9 @@
 package plan
 
 import (
+	types "attacknet/cmd/internal/pkg/chaos"
 	"attacknet/cmd/pkg/plan/network"
 	"attacknet/cmd/pkg/plan/suite"
-	types "attacknet/cmd/pkg/types"
 	"gopkg.in/yaml.v3"
 )
 
@@ -33,33 +33,40 @@ func BuildPlan(planName string, config *PlannerConfig) error {
 	}
 
 	var attacknetConfig types.AttacknetConfig
-	if config.KubernetesNamespace == "" {
-		attacknetConfig = types.AttacknetConfig{
-			GrafanaPodName:             "grafana",
-			GrafanaPodPort:             "3000",
-			WaitBeforeInjectionSeconds: uint32(config.FaultConfig.WaitBeforeFirstTest.Seconds()),
-			ReuseDevnetBetweenRuns:     true,
-			AllowPostFaultInspection:   false,
-		}
-	} else {
-		attacknetConfig = types.AttacknetConfig{
-			GrafanaPodName:             "grafana",
-			GrafanaPodPort:             "3000",
-			WaitBeforeInjectionSeconds: uint32(config.FaultConfig.WaitBeforeFirstTest.Seconds()),
-			ReuseDevnetBetweenRuns:     true,
-			ExistingDevnetNamespace:    config.KubernetesNamespace,
-			AllowPostFaultInspection:   false,
-		}
-	}
+	// TODO: remove and ensure we check the kurtosis config for the prometheus grafana package
+	//
+	//if config.KubernetesNamespace == "" {
+	//	attacknetConfig = types.AttacknetConfig{
+	//		GrafanaPodName:             "grafana",
+	//		GrafanaPodPort:             "3000",
+	//		WaitBeforeInjectionSeconds: uint32(config.FaultConfig.WaitBeforeFirstTest.Seconds()),
+	//		ReuseDevnetBetweenRuns:     true,
+	//		AllowPostFaultInspection:   false,
+	//	}
+	//} else {
+	//	attacknetConfig = types.AttacknetConfig{
+	//		GrafanaPodName:             "grafana",
+	//		GrafanaPodPort:             "3000",
+	//		WaitBeforeInjectionSeconds: uint32(config.FaultConfig.WaitBeforeFirstTest.Seconds()),
+	//		ReuseDevnetBetweenRuns:     true,
+	//		ExistingDevnetNamespace:    config.KubernetesNamespace,
+	//		AllowPostFaultInspection:   false,
+	//	}
+	//}
 
+	//TODO: remove
+	//c := types.Config{
+	//	AttacknetConfig: attacknetConfig,
+	//	HarnessConfig: types.HarnessConfig{
+	//		NetworkPackage:    config.KurtosisPackage,
+	//		NetworkConfigPath: netRefPath,
+	//		NetworkType:       "ethereum",
+	//	},
+	//	TestConfig: types.Config{Tests: tests},
+	//}
 	c := types.Config{
-		AttacknetConfig: attacknetConfig,
-		HarnessConfig: types.HarnessConfig{
-			NetworkPackage:    config.KurtosisPackage,
-			NetworkConfigPath: netRefPath,
-			NetworkType:       "ethereum",
-		},
-		TestConfig: types.SuiteTestConfigs{Tests: tests},
+		Tests:          tests,
+		StartNewDevnet: config.StartNewDevnet,
 	}
 
 	suiteConfig, err := yaml.Marshal(c)

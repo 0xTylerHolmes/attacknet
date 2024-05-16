@@ -26,7 +26,8 @@ type HarnessConfigParsed struct {
 type Config struct {
 	Tests []SuiteTest `yaml:"tests"`
 	// StartNewDevnet specifies whether the experiment should be run on a fresh devnet
-	StartNewDevnet bool `yaml:"start_new_devnet"`
+	StartNewDevnet bool          `yaml:"start_new_devnet"`
+	ChaosDelay     time.Duration `yaml:"chaos_delay"`
 }
 
 type HealthCheckConfig struct {

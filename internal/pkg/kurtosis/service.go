@@ -10,6 +10,7 @@ import (
 	"github.com/kurtosis-tech/stacktrace"
 	log "github.com/sirupsen/logrus"
 	"strings"
+	"time"
 )
 
 // Service handles the interaction with the enclave using the kurtosis engine API
@@ -23,8 +24,8 @@ type Service struct {
 	//reuseDevnetBetweenRuns bool
 }
 
-// isTargetEnclaveRunning checks if the desired enclave we want to test is already running in kurtosis
-func (s *Service) isTargetEnclaveRunning(ctx context.Context, targetEnclaveName string) (bool, error) {
+// TargetEnclaveExists checks if the desired enclave we want to test is already running in kurtosis
+func (s *Service) TargetEnclaveExists(ctx context.Context, targetEnclaveName string) (bool, error) {
 	runningEnclaves, err := s.kurtosisContext.GetEnclaves(ctx)
 	if err != nil {
 		return false, err
@@ -38,8 +39,22 @@ func (s *Service) isTargetEnclaveRunning(ctx context.Context, targetEnclaveName 
 	return false, nil
 }
 
-// Destroy tears down the enclave we are using
-func (e *Service) Destroy(ctx context.Context) error {
+func (s *Service) IsDevnetRunning(ctx context.Context) (bool, error) {
+	//TODO: make this better
+	services, err := s.enclaveContext.GetServices()
+	if err != nil {
+		return false, err
+	}
+	//TODO check that services match the kurtosis config file
+	if len(services) == 0 {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+// DestroyEnclave tears down the enclave we are using
+func (e *Service) DestroyEnclave(ctx context.Context) error {
 	return e.kurtosisContext.DestroyEnclave(ctx, e.enclaveContext.GetEnclaveName())
 }
 
@@ -93,6 +108,16 @@ func isErrorNoEnclaveFound(err error) bool {
 	}
 }
 
+func (s *Service) CreateEnclave(ctx context.Context) error {
+	enclaveContext, err := s.kurtosisContext.CreateProductionEnclave(ctx, s.config.EnclaveName)
+	if err != nil {
+		return err
+	}
+	//update the enclave context
+	s.enclaveContext = enclaveContext
+	return nil
+}
+
 // NewService creates a new kurtosis service to interact with
 func NewService(ctx context.Context, config *Config) (*Service, error) {
 	// get the kurtosis context
@@ -135,7 +160,23 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 	}, nil
 }
 
-// StartNetwork starts the ethereum-package devnet using the Service's config
+func (s *Service) RestartDevnet(ctx context.Context) error {
+	err := s.DestroyEnclave(ctx)
+	if err != nil {
+		return err
+	}
+	//TODO: find a more appropriate method of dealing with the kubernetes overhead.
+	// as of now the kt-enclave will run for awhile after enclave destroyed
+	time.Sleep(30 * time.Second)
+	err = s.CreateEnclave(ctx)
+	if err != nil {
+		return err
+	}
+	// start the devnet
+	return s.StartNetwork(ctx)
+}
+
+// StartNetwork starts the devnet using the Service's config
 func (s *Service) StartNetwork(ctx context.Context) error {
 	log.Infof("------------ EXECUTING PACKAGE ---------------")
 	cfg := &starlark_run_config.StarlarkRunConfig{

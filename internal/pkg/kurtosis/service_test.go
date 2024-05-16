@@ -61,7 +61,7 @@ func TestCreateNewEnclave(t *testing.T) {
 	if !isRunning {
 		t.Fatal("enclave wasn't running when it was expected to be alive")
 	}
-	err = service.Destroy(context.TODO())
+	err = service.DestroyEnclave(context.TODO())
 	t.Logf("destroying the created enclave")
 	require.NoError(t, err)
 }

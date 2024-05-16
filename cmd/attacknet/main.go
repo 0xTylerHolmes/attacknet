@@ -1,7 +1,7 @@
 package main
 
 import (
-	"attacknet/cmd/pkg"
+	"attacknet/cmd"
 	"attacknet/cmd/pkg/plan"
 	"attacknet/cmd/pkg/project"
 	"context"
@@ -53,7 +53,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = pkg.StartTestSuite(ctx, cfg)
+		err = attacknet.StartTestSuite(ctx, cfg)
 		if err != nil {
 			log.Fatal(err)
 			os.Exit(1)
