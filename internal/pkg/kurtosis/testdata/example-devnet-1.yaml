@@ -1,0 +1,21 @@
+participants:
+  - el_type: reth
+    el_image: ghcr.io/paradigmxyz/reth:latest
+    cl_type: prysm
+    cl_image: gcr.io/prysmaticlabs/prysm/beacon-chain:latest
+    use_separate_vc: true
+    vc_type: prysm
+    count: 2
+  - el_type: nethermind
+    el_image: nethermind/nethermind:latest
+    cl_type: lodestar
+    cl_image: chainsafe/lodestar:latest
+    count: 2
+network_params:
+  num_validator_keys_per_node: 32
+additional_services:
+  - prometheus_grafana
+  - dora
+parallel_keystore_generation: false
+persistent: false
+disable_peer_scoring: true
