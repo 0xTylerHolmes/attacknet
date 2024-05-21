@@ -141,7 +141,7 @@ func composeExecutionClientFromParticipant(participant *Participant) (*network.E
 
 // hacky workaround until we can retrieve the starlark_run_config from a running enclave.
 func ComposeTopologyFromRunningEnclave(ctx context.Context, enclaveContext *enclaves.EnclaveContext) (*network.Topology, error) {
-	isRunning, err := isDevnetRunning(ctx, enclaveContext)
+	isRunning, err := isDevnetRunning(enclaveContext)
 	if err != nil {
 		return nil, err
 	}

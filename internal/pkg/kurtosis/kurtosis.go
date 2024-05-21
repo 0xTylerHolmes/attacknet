@@ -71,7 +71,7 @@ func isExpectedDevnetRunning(ctx context.Context, enclaveContext *enclaves.Encla
 }
 
 // isDevnetRunning checks if there are running services within the enclave
-func isDevnetRunning(ctx context.Context, enclaveContext *enclaves.EnclaveContext) (bool, error) {
+func isDevnetRunning(enclaveContext *enclaves.EnclaveContext) (bool, error) {
 	services, err := enclaveContext.GetServices()
 	if err != nil {
 		return false, err
