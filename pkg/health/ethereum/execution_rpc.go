@@ -1,8 +1,8 @@
 package ethereum
 
 import (
+	"attacknet/cmd/internal/kubernetes"
 	"attacknet/cmd/pkg/health/types"
-	"attacknet/cmd/pkg/kubernetes"
 	"context"
 	"fmt"
 	geth "github.com/ethereum/go-ethereum/core/types"

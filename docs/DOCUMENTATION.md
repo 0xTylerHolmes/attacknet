@@ -192,12 +192,12 @@ These files are used by the test planner feature to generate network configs and
 Here's an annotated test plan:
 
 ```yaml
-execution: # list of execution clients that will be used in the network topology
+execution: # list of execution clients that will be used in the network network
   - name: geth
     image: ethereum/client-go:latest
   - name: reth
     image: ghcr.io/paradigmxyz/reth:latest
-consensus: # list of consensus clients that will be used in the network topology
+consensus: # list of consensus clients that will be used in the network network
   - name: lighthouse
     image: sigp/lighthouse:latest
     has_sidecar: true

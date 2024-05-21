@@ -1,8 +1,8 @@
 package suite
 
 import (
+	"attacknet/cmd/internal/pkg/chaos"
 	"attacknet/cmd/pkg/plan/network"
-	"attacknet/cmd/pkg/types"
 	"fmt"
 	"github.com/kurtosis-tech/stacktrace"
 	log "github.com/sirupsen/logrus"
@@ -13,9 +13,9 @@ import (
 func ComposeTestSuite(
 	config PlannerFaultConfiguration,
 	isExecClient bool,
-	nodes []*network.Node) ([]types.SuiteTest, error) {
+	nodes []*network.Node) ([]chaos.SuiteTest, error) {
 
-	var tests []types.SuiteTest
+	var tests []chaos.SuiteTest
 	runtimeEstimate := 0
 
 	nodeFilter := BuildNodeFilteringLambda(config.TargetClient, isExecClient)
@@ -129,7 +129,7 @@ func composeTestForFaultType(
 	config map[string]string,
 	targetSelectors []*ChaosTargetSelector,
 	targetingDescription string,
-) (*types.SuiteTest, error) {
+) (*chaos.SuiteTest, error) {
 
 	switch faultType {
 	case FaultClockSkew:

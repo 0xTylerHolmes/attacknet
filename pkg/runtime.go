@@ -1,19 +1,19 @@
 package pkg
 
 import (
+	"attacknet/cmd/internal/kubernetes"
+	"attacknet/cmd/internal/pkg/chaos"
+	"attacknet/cmd/internal/pkg/chaos/chaos-mesh"
 	"attacknet/cmd/pkg/artifacts"
-	chaos_mesh "attacknet/cmd/pkg/chaos-mesh"
 	"attacknet/cmd/pkg/health"
-	"attacknet/cmd/pkg/kubernetes"
 	"attacknet/cmd/pkg/runtime"
 	"attacknet/cmd/pkg/test_executor"
-	"attacknet/cmd/pkg/types"
 	"context"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
 
-func StartTestSuite(ctx context.Context, cfg *types.ConfigParsed) error {
+func StartTestSuite(ctx context.Context, cfg *chaos.ConfigParsed) error {
 	enclave, err := runtime.SetupEnclave(ctx, cfg)
 	if err != nil {
 		return err

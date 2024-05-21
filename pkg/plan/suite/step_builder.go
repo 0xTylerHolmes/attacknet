@@ -1,8 +1,8 @@
 package suite
 
 import (
+	"attacknet/cmd/internal/pkg/chaos"
 	"attacknet/cmd/pkg/plan/network"
-	"attacknet/cmd/pkg/types"
 	"fmt"
 	"github.com/kurtosis-tech/stacktrace"
 	log "github.com/sirupsen/logrus"
@@ -41,12 +41,12 @@ func ConvertToNodeIdTag(networkNodeCount int, node *network.Node, client clientT
 	}
 }
 
-func composeWaitForFaultCompletionStep() *types.PlanStep {
-	return &types.PlanStep{StepType: types.WaitForFaultCompletion, StepDescription: "wait for faults to terminate"}
+func composeWaitForFaultCompletionStep() *chaos.PlanStep {
+	return &chaos.PlanStep{StepType: chaos.WaitForFaultCompletion, StepDescription: "wait for faults to terminate"}
 }
 
-func composeNodeClockSkewPlanSteps(targetsSelected []*ChaosTargetSelector, skew, duration string) ([]types.PlanStep, error) {
-	var steps []types.PlanStep
+func composeNodeClockSkewPlanSteps(targetsSelected []*ChaosTargetSelector, skew, duration string) ([]chaos.PlanStep, error) {
+	var steps []chaos.PlanStep
 	for _, target := range targetsSelected {
 		description := fmt.Sprintf("Inject clock skew on target %s", target.Description)
 
@@ -60,8 +60,8 @@ func composeNodeClockSkewPlanSteps(targetsSelected []*ChaosTargetSelector, skew,
 	return steps, nil
 }
 
-func composeNodeRestartSteps(targetsSelected []*ChaosTargetSelector) ([]types.PlanStep, error) {
-	var steps []types.PlanStep
+func composeNodeRestartSteps(targetsSelected []*ChaosTargetSelector) ([]chaos.PlanStep, error) {
+	var steps []chaos.PlanStep
 
 	for _, target := range targetsSelected {
 		description := fmt.Sprintf("Restart target %s", target.Description)
@@ -88,8 +88,8 @@ func areExprSelectorsMatchingIdIn(expressionSelectors []ChaosExpressionSelector)
 	return nil
 }
 
-func composeIOLatencySteps(targetsSelected []*ChaosTargetSelector, delay *time.Duration, percent int, duration *time.Duration) ([]types.PlanStep, error) {
-	var steps []types.PlanStep
+func composeIOLatencySteps(targetsSelected []*ChaosTargetSelector, delay *time.Duration, percent int, duration *time.Duration) ([]chaos.PlanStep, error) {
+	var steps []chaos.PlanStep
 
 	for _, target := range targetsSelected {
 		description := fmt.Sprintf("Inject i/o latency on target %s", target.Description)
@@ -112,8 +112,8 @@ func composeIOLatencySteps(targetsSelected []*ChaosTargetSelector, delay *time.D
 
 }
 
-func composeNetworkLatencySteps(targetsSelected []*ChaosTargetSelector, delay, jitter, duration *time.Duration, correlation int) ([]types.PlanStep, error) {
-	var steps []types.PlanStep
+func composeNetworkLatencySteps(targetsSelected []*ChaosTargetSelector, delay, jitter, duration *time.Duration, correlation int) ([]chaos.PlanStep, error) {
+	var steps []chaos.PlanStep
 	for _, target := range targetsSelected {
 		description := fmt.Sprintf("Inject network latency on target %s", target.Description)
 
@@ -127,8 +127,8 @@ func composeNetworkLatencySteps(targetsSelected []*ChaosTargetSelector, delay, j
 	return steps, nil
 }
 
-func composePacketDropSteps(targetsSelected []*ChaosTargetSelector, percent int, direction string, duration *time.Duration) ([]types.PlanStep, error) {
-	var steps []types.PlanStep
+func composePacketDropSteps(targetsSelected []*ChaosTargetSelector, percent int, direction string, duration *time.Duration) ([]chaos.PlanStep, error) {
+	var steps []chaos.PlanStep
 	for _, target := range targetsSelected {
 		description := fmt.Sprintf("Inject network latency on target %s", target.Description)
 

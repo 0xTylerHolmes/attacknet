@@ -1,9 +1,9 @@
 package plan
 
 import (
+	types "attacknet/cmd/internal/pkg/chaos"
 	"attacknet/cmd/pkg/plan/network"
 	"attacknet/cmd/pkg/plan/suite"
-	types "attacknet/cmd/pkg/types"
 	"gopkg.in/yaml.v3"
 )
 
@@ -59,7 +59,7 @@ func BuildPlan(planName string, config *PlannerConfig) error {
 			NetworkConfigPath: netRefPath,
 			NetworkType:       "ethereum",
 		},
-		TestConfig: types.SuiteTestConfigs{Tests: tests},
+		TestConfig: types.Config{Tests: tests},
 	}
 
 	suiteConfig, err := yaml.Marshal(c)

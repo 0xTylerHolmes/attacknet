@@ -1,8 +1,8 @@
 package ethereum
 
 import (
-	chaos_mesh "attacknet/cmd/pkg/chaos-mesh"
-	"attacknet/cmd/pkg/kubernetes"
+	"attacknet/cmd/internal/kubernetes"
+	"attacknet/cmd/internal/pkg/chaos/chaos-mesh"
 	"context"
 	log "github.com/sirupsen/logrus"
 	"time"

@@ -14,6 +14,7 @@ require (
 	github.com/kurtosis-tech/stacktrace v0.0.0-20211028211901-1c67a77b5409
 	github.com/rs/zerolog v1.29.1
 	github.com/sirupsen/logrus v1.9.3
+	github.com/stretchr/testify v1.8.4
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.29.0
 	k8s.io/apimachinery v0.29.0
@@ -103,7 +104,6 @@ require (
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.5.1 // indirect
-	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/supranational/blst v0.3.11 // indirect
 	github.com/tklauser/go-sysconf v0.3.13 // indirect
 	github.com/tklauser/numcpus v0.7.0 // indirect

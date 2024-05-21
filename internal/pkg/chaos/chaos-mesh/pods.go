@@ -1,6 +1,8 @@
 package chaos_mesh
 
-import "attacknet/cmd/pkg/kubernetes"
+import (
+	"attacknet/cmd/internal/kubernetes"
+)
 
 type PodUnderTest struct {
 	Name           string
