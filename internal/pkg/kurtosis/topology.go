@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
 	"strconv"
 	"strings"
@@ -139,8 +140,8 @@ func composeExecutionClientFromParticipant(participant *Participant) (*network.E
 }
 
 // hacky workaround until we can retrieve the starlark_run_config from a running enclave.
-func (s *Service) ComposeTopologyFromRunningEnclave(ctx context.Context) (*network.Topology, error) {
-	isRunning, err := s.IsDevnetRunning(ctx)
+func ComposeTopologyFromRunningEnclave(ctx context.Context, enclaveContext *enclaves.EnclaveContext) (*network.Topology, error) {
+	isRunning, err := isDevnetRunning(ctx, enclaveContext)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +149,7 @@ func (s *Service) ComposeTopologyFromRunningEnclave(ctx context.Context) (*netwo
 		return nil, errors.New("devnet is not running in the target enclave")
 	}
 
-	viableNodeServiceIDs, err := getViableNodeServiceIDs(ctx, s.enclaveContext)
+	viableNodeServiceIDs, err := getViableNodeServiceIDs(ctx, enclaveContext)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +160,7 @@ func (s *Service) ComposeTopologyFromRunningEnclave(ctx context.Context) (*netwo
 
 	for _, serviceName := range viableNodeServiceIDs {
 		if serviceName[:2] == "el" {
-			service, err := s.enclaveContext.GetServiceContext(serviceName)
+			service, err := enclaveContext.GetServiceContext(serviceName)
 			if err != nil {
 				return nil, err
 			}
@@ -168,7 +169,7 @@ func (s *Service) ComposeTopologyFromRunningEnclave(ctx context.Context) (*netwo
 			continue
 		}
 		if serviceName[:2] == "cl" {
-			service, err := s.enclaveContext.GetServiceContext(serviceName)
+			service, err := enclaveContext.GetServiceContext(serviceName)
 			if err != nil {
 				return nil, err
 			}
@@ -177,7 +178,7 @@ func (s *Service) ComposeTopologyFromRunningEnclave(ctx context.Context) (*netwo
 			continue
 		}
 		if serviceName[:2] == "vc" {
-			service, err := s.enclaveContext.GetServiceContext(serviceName)
+			service, err := enclaveContext.GetServiceContext(serviceName)
 			if err != nil {
 				return nil, err
 			}
