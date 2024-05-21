@@ -47,7 +47,7 @@ func TestCreateNewEnclave(t *testing.T) {
 	require.NoError(t, err)
 	if isRunning {
 		t.Logf("enclave was already running. Killing it and then waiting 30 seconds.")
-		err := destroyEnclave(context.TODO(), kurtosisContext, targetEnclave)
+		err = destroyEnclave(context.TODO(), kurtosisContext, targetEnclave)
 		require.NoError(t, err)
 		// there is a lot of lag time for kubernetes
 		time.Sleep(30 * time.Second)
@@ -75,6 +75,7 @@ func Test_StartDevnet(t *testing.T) {
 	require.NoError(t, err)
 	err = service.StartDevnet(context.TODO())
 	require.NoError(t, err)
+	_ = service.Destroy(context.TODO())
 }
 
 func TestGetTopologyFromRunningEnclave(t *testing.T) {
@@ -84,14 +85,17 @@ func TestGetTopologyFromRunningEnclave(t *testing.T) {
 	require.NoError(t, err)
 	matchingConfigTopology, err := ComposeTopologyFromConfig(kurtosisConfig)
 	require.NoError(t, err)
+	require.NoError(t, err)
 	service, err := NewService(context.TODO(), kurtosisConfig, kurtosisPackageID, targetEnclaveName)
 	require.NoError(t, err)
-	topology, err := service.ComposeTopologyFromRunningEnclave(context.TODO())
+	topology, err := ComposeTopologyFromRunningEnclave(context.TODO(), service.enclaveContext)
 	require.NoError(t, err)
 	isEqual := topology.IsEqual(matchingConfigTopology)
 	if !isEqual {
 		t.Fatal("expected equal topologies")
 	}
+	// destroy the test enclave
+	_ = service.Destroy(context.TODO())
 }
 
 func TestAttachingToDifferentEnclave(t *testing.T) {
@@ -105,10 +109,12 @@ func TestAttachingToDifferentEnclave(t *testing.T) {
 	require.NoError(t, err)
 	service, err := NewService(context.TODO(), kurtosisConfig, kurtosisPackageID, targetEnclaveName)
 	require.NoError(t, err)
-	topology, err := service.ComposeTopologyFromRunningEnclave(context.TODO())
+	topology, err := ComposeTopologyFromRunningEnclave(context.TODO(), service.enclaveContext)
 	require.NoError(t, err)
 	isEqual := topology.IsEqual(mismatchedTopology)
 	if isEqual {
 		t.Fatal("expected unequal topologies")
 	}
+	// destroy the test enclave
+	_ = service.Destroy(context.TODO())
 }

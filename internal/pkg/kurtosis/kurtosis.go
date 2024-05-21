@@ -56,29 +56,6 @@ func getViableNodeServiceIDs(ctx context.Context, enclaveContext *enclaves.Encla
 	return matchingServices, nil
 }
 
-// isExpectedDevnetRunning checks if the devnet specified by service config is running in the target enclave
-func isExpectedDevnetRunning(ctx context.Context, enclaveContext *enclaves.EnclaveContext, config *Config) (bool, error) {
-	configTopology, err := ComposeTopologyFromConfig(config)
-	if err != nil {
-		return false, err
-	}
-	runningTopology, err := ComposeTopologyFromRunningEnclave(ctx, enclaveContext)
-	if err != nil {
-		return false, err
-	}
-	// return whether the running enclave is the expected enclave
-	return configTopology.IsEqual(runningTopology), nil
-}
-
-// isDevnetRunning checks if there are running services within the enclave
-func isDevnetRunning(enclaveContext *enclaves.EnclaveContext) (bool, error) {
-	services, err := enclaveContext.GetServices()
-	if err != nil {
-		return false, err
-	}
-	return len(services) > 0, nil
-}
-
 // doesEnclaveExist check if the target enclave exists, error is not recoverable
 func doesEnclaveExist(ctx context.Context, kurtosisContext *kurtosis_context.KurtosisContext, targetEnclaveName string) (bool, error) {
 	runningEnclaves, err := kurtosisContext.GetEnclaves(ctx)

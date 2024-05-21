@@ -120,8 +120,9 @@ func (s *Service) AttachToRunningContext(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	s.enclaveContext = enclaveContext
 
-	devnetRunning, err := isDevnetRunning(ctx, enclaveContext)
+	devnetRunning, err := s.isDevnetRunning()
 	if err != nil {
 		return err
 	}
@@ -133,7 +134,7 @@ func (s *Service) AttachToRunningContext(ctx context.Context) error {
 	}
 
 	// the devnet in the enclave is already running, is it the expected devnet for the provided configuration file?
-	isExpectedDevnet, err := isExpectedDevnetRunning(ctx, enclaveContext, s.config)
+	isExpectedDevnet, err := s.isExpectedDevnetRunning(ctx)
 	if isExpectedDevnet {
 		s.enclaveContext = enclaveContext
 		return nil
@@ -144,4 +145,27 @@ func (s *Service) AttachToRunningContext(ctx context.Context) error {
 
 func (s *Service) StartDevnet(ctx context.Context) error {
 	return startDevnet(ctx, s.enclaveContext, s.kurtosisPackageID, s.config)
+}
+
+// isExpectedDevnetRunning checks if the devnet specified by service config is running in the target enclave
+func (s *Service) isExpectedDevnetRunning(ctx context.Context) (bool, error) {
+	configTopology, err := ComposeTopologyFromConfig(s.config)
+	if err != nil {
+		return false, err
+	}
+	runningTopology, err := ComposeTopologyFromRunningEnclave(ctx, s.enclaveContext)
+	if err != nil {
+		return false, err
+	}
+	// return whether the running enclave is the expected enclave
+	return configTopology.IsEqual(runningTopology), nil
+}
+
+// isDevnetRunning checks if there are running services within the enclave
+func (s *Service) isDevnetRunning() (bool, error) {
+	services, err := s.enclaveContext.GetServices()
+	if err != nil {
+		return false, err
+	}
+	return len(services) > 0, nil
 }
