@@ -1,8 +1,8 @@
 package pkg
 
 import (
-	"attacknet/cmd/internal/kubernetes"
 	"attacknet/cmd/internal/pkg/chaos"
+	"attacknet/cmd/internal/pkg/kubernetes"
 	"context"
 	"fmt"
 	grafanaSdk "github.com/grafana-tools/sdk"

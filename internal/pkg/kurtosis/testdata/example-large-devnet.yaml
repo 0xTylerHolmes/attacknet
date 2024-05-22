@@ -3,12 +3,17 @@ participants:
     el_image: hyperledger/besu:latest
     cl_type: teku
     cl_image: consensys/teku:latest-amd64
-    count: 1
+    count: 2
+  - el_type: geth
+    el_image: ethereum/client-go:latest
+    cl_type: nimbus
+    cl_image: statusim/nimbus-eth2:multiarch-latest
+    count: 2
 network_params:
-  num_validator_keys_per_node: 64
+  num_validator_keys_per_node: 32
 additional_services:
   - prometheus_grafana
   - dora
 parallel_keystore_generation: false
 persistent: false
-disable_peer_scoring: true
+  disable_peer_s

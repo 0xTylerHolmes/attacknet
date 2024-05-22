@@ -4,25 +4,27 @@ import (
 	"attacknet/cmd/internal/pkg/network"
 	"context"
 	"errors"
-	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
+	"fmt"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 	log "github.com/sirupsen/logrus"
+	"time"
+)
+
+var (
+	// TODO it would be nice if the kubernetes service got a signal and could kill it faster
+	kubernetesOverheadDuration = time.Second * 60
 )
 
 type Service struct {
-	enclaveName string `yaml:"enclave_name"`
-	//enclaveNamespace  string `yaml:"enclave_namespace"` //TODO is this necessary
+	enclaveName       string `yaml:"enclave_name"`
 	kurtosisPackageID string `yaml:"kurtosis_package_id"`
 
 	config          *Config
 	configTopology  *network.Topology
 	kurtosisContext *kurtosis_context.KurtosisContext
-	enclaveContext  *enclaves.EnclaveContext
-
-	devnetRunning bool // whether the devnet is running in the enclave
 }
 
-// NewService creates a new kurtosis service. If the target enclave already exists we attach to it, if not we create the enclave.
+// NewService creates a new kurtosis service. This service stores all information about the enclave of interest and the ethereum-package topology.
 func NewService(ctx context.Context, config *Config, kurtosisPackageID string, targetEnclaveName string) (*Service, error) {
 	log.Infof("Creating a new kurtosis service.")
 	kurtosisContext, err := getKurtosisContext()
@@ -30,142 +32,134 @@ func NewService(ctx context.Context, config *Config, kurtosisPackageID string, t
 		return nil, err
 	}
 
-	service := &Service{
-		enclaveName:       targetEnclaveName,
-		kurtosisPackageID: kurtosisPackageID,
-		config:            config,
-		kurtosisContext:   kurtosisContext,
-		enclaveContext:    nil,
-	}
-
 	configTopology, err := ComposeTopologyFromConfig(config)
 	if err != nil {
 		return nil, err
 	}
-	service.configTopology = configTopology
 
-	// check if the target enclave exists
-	log.Debugf("checking if an enclave with the target name: %s exists.", targetEnclaveName)
-	enclaveExists, err := doesEnclaveExist(ctx, kurtosisContext, targetEnclaveName)
+	return &Service{
+		enclaveName:       targetEnclaveName,
+		kurtosisPackageID: kurtosisPackageID,
+		config:            config,
+		kurtosisContext:   kurtosisContext,
+		configTopology:    configTopology,
+	}, nil
+}
+
+func (s *Service) ForceCreateNewEnclave(ctx context.Context) error {
+	enclaveExists, err := doesEnclaveExist(ctx, s.kurtosisContext, s.enclaveName)
 	if err != nil {
-		// unrecoverable
-		return nil, err
+		return err
+	}
+
+	if !enclaveExists {
+		_, err = createEnclave(ctx, s.kurtosisContext, s.enclaveName)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	err = destroyEnclave(ctx, s.kurtosisContext, s.enclaveName)
+	if err != nil {
+		return err
+	}
+	time.Sleep(kubernetesOverheadDuration)
+	_, err = createEnclave(ctx, s.kurtosisContext, s.enclaveName)
+	return err
+}
+
+// PrepareEnclave prepares the enclave for attacknet to use.
+func (s *Service) PrepareEnclave(ctx context.Context, restartDevnet bool) error {
+	// go ahead and tear down the enclave and start the devnet
+	enclaveExists, err := doesEnclaveExist(ctx, s.kurtosisContext, s.enclaveName)
+	if err != nil {
+		return err
+	}
+
+	if restartDevnet {
+
+		if !enclaveExists {
+			return s.prepareNewEnclaveAndStartDevnet(ctx)
+		}
+
+		// enclave exists destroy and recreate
+		err = destroyEnclave(ctx, s.kurtosisContext, s.enclaveName)
+		if err != nil {
+			return err
+		}
+		time.Sleep(kubernetesOverheadDuration)
+		return s.prepareNewEnclaveAndStartDevnet(ctx)
 	}
 
 	if enclaveExists {
-		log.Infof("target enclave does exist. Checking to see if the devnet is running.")
-		err = service.AttachToRunningContext(ctx)
-		if err != nil {
-			return nil, err
-		}
-
-		return service, nil
+		return s.verifyRunningDevnet(ctx)
 	}
 
-	// enclave does not exist, create it but don't start it.
-	//enclaveContext, err := createEnclave(ctx, service.kurtosisContext, targetEnclaveName)
-	log.Infof("target enclave: %s does not exist, creating it.", targetEnclaveName)
-	err = service.CreateEnclave(ctx)
-	if err != nil {
-		return nil, err
-	}
-	service.devnetRunning = false
-	log.Infof("target enclave: %s created.", targetEnclaveName)
-
-	return service, nil
+	return s.prepareNewEnclaveAndStartDevnet(ctx)
 }
 
-// DoesTargetEnclaveExist checks whether the target enclave for this service exists.
-func (s *Service) DoesTargetEnclaveExist(ctx context.Context) (bool, error) {
-	runningEnclaves, err := s.kurtosisContext.GetEnclaves(ctx)
-	if err != nil {
-		return false, err
-	}
-
-	for enclaveName := range runningEnclaves.GetEnclavesByName() {
-		if enclaveName == s.enclaveName {
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
-// Destroy destroys the target enclave
-func (e *Service) Destroy(ctx context.Context) error {
-	return destroyEnclave(ctx, e.kurtosisContext, e.enclaveName)
-}
-
-//// IsDevnetRunning checks to see if there are running services within the target enclave
-//func (s *Service) IsDevnetRunning(ctx context.Context) (bool, error) {
-//	services, err := s.enclaveContext.GetServices()
-//	if err != nil {
-//		return false, err
-//	}
-//	return len(services) > 0, nil
-//}
-
-func (s *Service) CreateEnclave(ctx context.Context) error {
-	enclaveContext, err := s.kurtosisContext.CreateProductionEnclave(ctx, s.enclaveName)
+// prepareNewEnclaveAndStartDevnet prepare a new enclave and start the devnet. errors on internal error and if the enclave already exists
+func (s *Service) prepareNewEnclaveAndStartDevnet(ctx context.Context) error {
+	exists, err := doesEnclaveExist(ctx, s.kurtosisContext, s.enclaveName)
 	if err != nil {
 		return err
 	}
-	//update the enclave context
-	s.enclaveContext = enclaveContext
+
+	if exists {
+		return errors.New(fmt.Sprintf("cant create a new enclave; enclave %s already exists", s.enclaveName))
+	}
+
+	enclaveContext, err := createEnclave(ctx, s.kurtosisContext, s.enclaveName)
+	if err != nil {
+		return err
+	}
+	return startDevnet(ctx, enclaveContext, s.kurtosisPackageID, s.config)
+}
+
+// verifyRunningDevnet verifies that the running devnet is the one specified by the config file.
+// errors if the topologies don't match or there is an internal error.
+func (s *Service) verifyRunningDevnet(ctx context.Context) error {
+	enclaveContext, err := getEnclaveContext(ctx, s.kurtosisContext, s.enclaveName)
+	// verify devnet running
+	running, err := hasEnclaveStarted(enclaveContext)
+	if err != nil {
+		return err
+	}
+	if !running {
+		return errors.New(fmt.Sprintf("can't attach to running devnet in enclave: %s, devnet was not running", s.enclaveName))
+	}
+
+	isExpectedDevnet, err := isExpectedDevnetRunning(ctx, s.config, enclaveContext)
+	if err != nil {
+		return err
+	}
+	if !isExpectedDevnet {
+		return errors.New(fmt.Sprintf("the running devnet in enclave: %s has a different topology than the one specified in the config file", s.enclaveName))
+	}
+
 	return nil
 }
 
-// AttachToRunningContext attaches to an already running context, returns an error if it doesn't exist or if there is an internal error
-func (s *Service) AttachToRunningContext(ctx context.Context) error {
-	enclaveContext, err := s.kurtosisContext.GetEnclaveContext(ctx, s.enclaveName)
+// ForceRestartDevnet force restarts the devnet, if it doesn't exist it will be created, if it is running it will be restarted
+func (s *Service) ForceRestartDevnet(ctx context.Context) error {
+	// check to see if the enclave exists.
+	log.Infof("Attempting to restart the devnet.")
+	enclaveExists, err := doesEnclaveExist(ctx, s.kurtosisContext, s.enclaveName)
 	if err != nil {
 		return err
 	}
-	s.enclaveContext = enclaveContext
 
-	devnetRunning, err := s.isDevnetRunning()
+	// create non-existing enclave
+	if !enclaveExists {
+		log.Infof("the devnet we are trying to start belongs to a enclave that hasn't been created. Creating it now.")
+		return s.prepareNewEnclaveAndStartDevnet(ctx)
+	}
+
+	err = destroyEnclave(ctx, s.kurtosisContext, s.enclaveName)
 	if err != nil {
 		return err
 	}
-	if !devnetRunning {
-		log.Infof("The devnet we are attaching to has not started. Starting it now.")
-		err = startDevnet(ctx, enclaveContext, s.kurtosisPackageID, s.config)
-		s.enclaveContext = enclaveContext
-		return nil
-	}
-
-	// the devnet in the enclave is already running, is it the expected devnet for the provided configuration file?
-	isExpectedDevnet, err := s.isExpectedDevnetRunning(ctx)
-	if isExpectedDevnet {
-		s.enclaveContext = enclaveContext
-		return nil
-	}
-
-	return errors.New("the running devnet does not match the specified configuration file")
-}
-
-func (s *Service) StartDevnet(ctx context.Context) error {
-	return startDevnet(ctx, s.enclaveContext, s.kurtosisPackageID, s.config)
-}
-
-// isExpectedDevnetRunning checks if the devnet specified by service config is running in the target enclave
-func (s *Service) isExpectedDevnetRunning(ctx context.Context) (bool, error) {
-	configTopology, err := ComposeTopologyFromConfig(s.config)
-	if err != nil {
-		return false, err
-	}
-	runningTopology, err := ComposeTopologyFromRunningEnclave(ctx, s.enclaveContext)
-	if err != nil {
-		return false, err
-	}
-	// return whether the running enclave is the expected enclave
-	return configTopology.IsEqual(runningTopology), nil
-}
-
-// isDevnetRunning checks if there are running services within the enclave
-func (s *Service) isDevnetRunning() (bool, error) {
-	services, err := s.enclaveContext.GetServices()
-	if err != nil {
-		return false, err
-	}
-	return len(services) > 0, nil
+	time.Sleep(kubernetesOverheadDuration)
+	return s.prepareNewEnclaveAndStartDevnet(ctx)
 }

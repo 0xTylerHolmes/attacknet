@@ -5,14 +5,9 @@ participants:
     cl_image: gcr.io/prysmaticlabs/prysm/beacon-chain:latest
     use_separate_vc: true
     vc_type: prysm
-    count: 2
-  - el_type: nethermind
-    el_image: nethermind/nethermind:latest
-    cl_type: lodestar
-    cl_image: chainsafe/lodestar:latest
-    count: 2
+    count: 1
 network_params:
-  num_validator_keys_per_node: 32
+  num_validator_keys_per_node: 64
 additional_services:
   - prometheus_grafana
   - dora

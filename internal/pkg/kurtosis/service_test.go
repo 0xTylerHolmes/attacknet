@@ -30,9 +30,13 @@ func forceKillDevnet(targetEnclaveName string) error {
 	if err != nil {
 		return err
 	}
-	err = destroyEnclave(context.TODO(), kurtosisContext, targetEnclaveName)
-	if err != nil {
-		time.Sleep(30 * time.Second)
+	exists, err := doesEnclaveExist(context.TODO(), kurtosisContext, targetEnclaveName)
+	if exists {
+		err = destroyEnclave(context.TODO(), kurtosisContext, targetEnclaveName)
+		if err != nil {
+			return err
+		}
+		time.Sleep(kubernetesOverheadDuration)
 	}
 	return nil
 }
@@ -41,80 +45,85 @@ func TestCreateNewEnclave(t *testing.T) {
 	targetEnclave := "example-devnet-0"
 	kurtosisConfig, err := getKurtosisConfig(exampleDevnet0)
 	require.NoError(t, err)
-	kurtosisContext, err := getKurtosisContext()
+
+	err = forceKillDevnet(targetEnclave)
 	require.NoError(t, err)
-	isRunning, err := doesEnclaveExist(context.TODO(), kurtosisContext, targetEnclave)
-	require.NoError(t, err)
-	if isRunning {
-		t.Logf("enclave was already running. Killing it and then waiting 30 seconds.")
-		err = destroyEnclave(context.TODO(), kurtosisContext, targetEnclave)
-		require.NoError(t, err)
-		// there is a lot of lag time for kubernetes
-		time.Sleep(30 * time.Second)
-	}
-	t.Logf("Trying to create a new Kurtosis Service")
+
 	service, err := NewService(context.TODO(), kurtosisConfig, kurtosisPackageID, targetEnclave)
+	err = service.ForceCreateNewEnclave(context.TODO())
 	require.NoError(t, err)
-	isRunning, err = doesEnclaveExist(context.TODO(), kurtosisContext, targetEnclave)
-	require.NoError(t, err)
-	if !isRunning {
-		t.Fatal("failed to find the running enclave we created")
-	}
-	// success
-	err = service.Destroy(context.TODO())
+
+	err = forceKillDevnet(targetEnclave)
 	require.NoError(t, err)
 }
 
-func Test_StartDevnet(t *testing.T) {
-	targetEnclaveName := "example-devnet-1"
-	configPath := exampleDevnet1
-	err := forceKillDevnet(targetEnclaveName)
+func Test_StartNonExistingDevnet(t *testing.T) {
+	targetEnclave := "example-devnet-0"
+	kurtosisConfig, err := getKurtosisConfig(exampleDevnet0)
 	require.NoError(t, err)
-	kurtosisConfig, err := getKurtosisConfig(configPath)
-	service, err := NewService(context.TODO(), kurtosisConfig, kurtosisPackageID, targetEnclaveName)
+
+	err = forceKillDevnet(targetEnclave)
 	require.NoError(t, err)
-	err = service.StartDevnet(context.TODO())
+
+	service, err := NewService(context.TODO(), kurtosisConfig, kurtosisPackageID, targetEnclave)
+	err = service.prepareNewEnclaveAndStartDevnet(context.TODO())
 	require.NoError(t, err)
-	_ = service.Destroy(context.TODO())
+
+	err = forceKillDevnet(targetEnclave)
+	require.NoError(t, err)
 }
 
 func TestGetTopologyFromRunningEnclave(t *testing.T) {
-	targetEnclaveName := "example-devnet-1"
-	configPath := exampleDevnet1
-	kurtosisConfig, err := getKurtosisConfig(configPath)
+	runningEnclaveName := "example-devnet-1"
+	runningEnclaveConfigPath := exampleDevnet1
+	runningEnclaveConfig, err := getKurtosisConfig(runningEnclaveConfigPath)
 	require.NoError(t, err)
-	matchingConfigTopology, err := ComposeTopologyFromConfig(kurtosisConfig)
+	matchingConfigTopology, err := ComposeTopologyFromConfig(runningEnclaveConfig)
 	require.NoError(t, err)
+	kurtosisContext, err := getKurtosisContext()
 	require.NoError(t, err)
-	service, err := NewService(context.TODO(), kurtosisConfig, kurtosisPackageID, targetEnclaveName)
+	err = forceKillDevnet(runningEnclaveName)
 	require.NoError(t, err)
-	topology, err := ComposeTopologyFromRunningEnclave(context.TODO(), service.enclaveContext)
+	service, err := NewService(context.TODO(), runningEnclaveConfig, kurtosisPackageID, runningEnclaveName)
+	require.NoError(t, err)
+	err = service.prepareNewEnclaveAndStartDevnet(context.TODO())
+	require.NoError(t, err)
+	runningEnclaveContext, err := getEnclaveContext(context.TODO(), kurtosisContext, runningEnclaveName)
+	topology, err := ComposeTopologyFromRunningEnclave(context.TODO(), runningEnclaveContext)
 	require.NoError(t, err)
 	isEqual := topology.IsEqual(matchingConfigTopology)
 	if !isEqual {
 		t.Fatal("expected equal topologies")
 	}
 	// destroy the test enclave
-	_ = service.Destroy(context.TODO())
+	err = forceKillDevnet(runningEnclaveName)
+	require.NoError(t, err)
 }
 
 func TestAttachingToDifferentEnclave(t *testing.T) {
-	targetEnclaveName := "example-devnet-1"
-	configPath := exampleDevnet1
-	kurtosisConfig, err := getKurtosisConfig(configPath)
+	runningEnclaveName := "example-devnet-1"
+	runningEnclaveConfigPath := exampleDevnet1
+	runningEnclaveConfig, err := getKurtosisConfig(runningEnclaveConfigPath)
 	require.NoError(t, err)
-	mismatchedConfig, err := getKurtosisConfig(exampleDevnet0)
+	differentEnclaveConfig, err := getKurtosisConfig(exampleDevnet0)
 	require.NoError(t, err)
-	mismatchedTopology, err := ComposeTopologyFromConfig(mismatchedConfig)
+
+	seperateConfigTopology, err := ComposeTopologyFromConfig(differentEnclaveConfig)
 	require.NoError(t, err)
-	service, err := NewService(context.TODO(), kurtosisConfig, kurtosisPackageID, targetEnclaveName)
+	kurtosisContext, err := getKurtosisContext()
 	require.NoError(t, err)
-	topology, err := ComposeTopologyFromRunningEnclave(context.TODO(), service.enclaveContext)
+	service, err := NewService(context.TODO(), runningEnclaveConfig, kurtosisPackageID, runningEnclaveName)
 	require.NoError(t, err)
-	isEqual := topology.IsEqual(mismatchedTopology)
-	if isEqual {
-		t.Fatal("expected unequal topologies")
+	err = service.prepareNewEnclaveAndStartDevnet(context.TODO())
+	require.NoError(t, err)
+	runningEnclaveContext, err := getEnclaveContext(context.TODO(), kurtosisContext, runningEnclaveName)
+	topology, err := ComposeTopologyFromRunningEnclave(context.TODO(), runningEnclaveContext)
+	require.NoError(t, err)
+	isEqual := topology.IsEqual(seperateConfigTopology)
+	if !isEqual {
+		t.Fatal("expected equal topologies")
 	}
 	// destroy the test enclave
-	_ = service.Destroy(context.TODO())
+	err = forceKillDevnet(runningEnclaveName)
+	require.NoError(t, err)
 }

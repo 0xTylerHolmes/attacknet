@@ -8,18 +8,27 @@ import (
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/starlark_run_config"
 	"github.com/kurtosis-tech/kurtosis/api/golang/engine/lib/kurtosis_context"
 	"github.com/kurtosis-tech/stacktrace"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"regexp"
 	"strings"
 )
 
+// wrappers around basic kurtosis functionality to be used by tests and the kurtosis Service
+
 func destroyEnclave(ctx context.Context, kurtosisContext *kurtosis_context.KurtosisContext, targetEnclaveName string) error {
+	log.Tracef("destroyEnclave: destroying the target enclave: %s", targetEnclaveName)
 	return kurtosisContext.DestroyEnclave(ctx, targetEnclaveName)
 }
 
 // createEnclave create a production enclave with the provided target name. Returns the enclave context
 func createEnclave(ctx context.Context, kurtosisContext *kurtosis_context.KurtosisContext, targetEnclaveName string) (*enclaves.EnclaveContext, error) {
+	log.Tracef("createEnclave: creating target enclave: %s", targetEnclaveName)
 	return kurtosisContext.CreateProductionEnclave(ctx, targetEnclaveName)
+}
+
+func getEnclaveContext(ctx context.Context, kurtosisContext *kurtosis_context.KurtosisContext, targetEnclaveName string) (*enclaves.EnclaveContext, error) {
+	log.Tracef("getEnclaveContext: getting context for target enclave: %s", targetEnclaveName)
+	return kurtosisContext.GetEnclaveContext(ctx, targetEnclaveName)
 }
 
 // getKurtosisContext fetches the context from the local kurtosis engine
@@ -58,6 +67,7 @@ func getViableNodeServiceIDs(ctx context.Context, enclaveContext *enclaves.Encla
 
 // doesEnclaveExist check if the target enclave exists, error is not recoverable
 func doesEnclaveExist(ctx context.Context, kurtosisContext *kurtosis_context.KurtosisContext, targetEnclaveName string) (bool, error) {
+	log.Tracef("doesEnclaveExist: searching for target enclave: %s", targetEnclaveName)
 	runningEnclaves, err := kurtosisContext.GetEnclaves(ctx)
 	if err != nil {
 		return false, err
@@ -73,7 +83,14 @@ func doesEnclaveExist(ctx context.Context, kurtosisContext *kurtosis_context.Kur
 
 // starts the devnet
 func startDevnet(ctx context.Context, enclaveContext *enclaves.EnclaveContext, kurtosisPackageID string, kurtosisConfig *Config) error {
-	logrus.Infof("------------ EXECUTING PACKAGE ---------------")
+	devnetRunning, err := hasEnclaveStarted(enclaveContext)
+	if err != nil {
+		return err
+	}
+	if devnetRunning {
+		return errors.New(fmt.Sprintf("can't create devnet in enclave: %s, it has already started.", enclaveContext.GetEnclaveName()))
+	}
+	log.Infof("------------ EXECUTING PACKAGE ---------------")
 	cfg := &starlark_run_config.StarlarkRunConfig{
 		SerializedParams: kurtosisConfig.String(),
 	}
@@ -90,42 +107,65 @@ func startDevnet(ctx context.Context, enclaveContext *enclaves.EnclaveContext, k
 		if progress != nil {
 			progressMsgs := progress.CurrentStepInfo
 			for i := progressIndex; i < len(progressMsgs); i++ {
-				logrus.Infof("[Kurtosis] %s", progressMsgs[i])
+				log.Infof("[Kurtosis] %s", progressMsgs[i])
 			}
 			progressIndex = len(progressMsgs)
 		}
 
 		info := t.GetInfo()
 		if info != nil {
-			logrus.Infof("[Kurtosis] %s", info.InfoMessage)
+			log.Infof("[Kurtosis] %s", info.InfoMessage)
 		}
 
 		warn := t.GetWarning()
 		if warn != nil {
-			logrus.Warnf("[Kurtosis] %s", warn.WarningMessage)
+			log.Warnf("[Kurtosis] %s", warn.WarningMessage)
 		}
 
 		e := t.GetError()
 		if e != nil {
-			logrus.Errorf("[Kurtosis] %s", e.String())
+			log.Errorf("[Kurtosis] %s", e.String())
 			return stacktrace.Propagate(errors.New("kurtosis deployment failed during execution"), "%s", e.String())
 		}
 
 		insRes := t.GetInstructionResult()
 		if insRes != nil {
-			logrus.Infof("[Kurtosis] %s", insRes.SerializedInstructionResult)
+			log.Infof("[Kurtosis] %s", insRes.SerializedInstructionResult)
 		}
 
 		finishRes := t.GetRunFinishedEvent()
 		if finishRes != nil {
-			logrus.Infof("[Kurtosis] %s", finishRes.GetSerializedOutput())
+			log.Infof("[Kurtosis] %s", finishRes.GetSerializedOutput())
 			if finishRes.IsRunSuccessful {
-				logrus.Info("[Kurtosis] Devnet genesis successful. Passing back to Attacknet")
+				log.Info("[Kurtosis] Devnet genesis successful. Passing back to Attacknet")
 				return nil
 			} else {
-				logrus.Error("[Kurtosis] There was an error during genesis.")
+				log.Error("[Kurtosis] There was an error during genesis.")
 				return stacktrace.Propagate(errors.New("kurtosis deployment failed"), "%s", finishRes.GetSerializedOutput())
 			}
 		}
 	}
+}
+
+// hasEnclaveStarted checks if there are running services within the enclave
+func hasEnclaveStarted(enclaveContext *enclaves.EnclaveContext) (bool, error) {
+	services, err := enclaveContext.GetServices()
+	if err != nil {
+		return false, err
+	}
+	return len(services) > 0, nil
+}
+
+// isExpectedDevnetRunning checks if the devnet specified by service config is running in the target enclave
+func isExpectedDevnetRunning(ctx context.Context, config *Config, enclaveContext *enclaves.EnclaveContext) (bool, error) {
+	configTopology, err := ComposeTopologyFromConfig(config)
+	if err != nil {
+		return false, err
+	}
+	runningTopology, err := ComposeTopologyFromRunningEnclave(ctx, enclaveContext)
+	if err != nil {
+		return false, err
+	}
+	// return whether the running enclave is the expected enclave
+	return configTopology.IsEqual(runningTopology), nil
 }

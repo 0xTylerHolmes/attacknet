@@ -1,20 +1,20 @@
 package ethereum
 
 import (
-	kubernetes2 "attacknet/cmd/internal/kubernetes"
 	"attacknet/cmd/internal/pkg/chaos/chaos-mesh"
+	"attacknet/cmd/internal/pkg/kubernetes"
 	"context"
 )
 
 func getPodsToHealthCheck(
 	ctx context.Context,
-	kubeClient *kubernetes2.KubeClient,
+	kubeClient *kubernetes.KubeClient,
 	podsUnderTest []*chaos_mesh.PodUnderTest,
 	podsUnderTestLookup map[string]*chaos_mesh.PodUnderTest,
 	labelKey, labelValue string,
-) ([]kubernetes2.KubePod, error) {
+) ([]kubernetes.KubePod, error) {
 
-	var podsToHealthCheck []kubernetes2.KubePod
+	var podsToHealthCheck []kubernetes.KubePod
 	// add pods under test that match the label criteria _and_ aren't expected to die
 	// todo: depending on whether we're testing network recovery or node recovery, we may want to health check nodes we're expecting to die
 	for _, pod := range podsUnderTest {

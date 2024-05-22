@@ -1,9 +1,9 @@
 package health
 
 import (
-	"attacknet/cmd/internal/kubernetes"
 	confTypes "attacknet/cmd/internal/pkg/chaos"
 	"attacknet/cmd/internal/pkg/chaos/chaos-mesh"
+	"attacknet/cmd/internal/pkg/kubernetes"
 	"attacknet/cmd/pkg/health/ethereum"
 	"attacknet/cmd/pkg/health/types"
 	"context"

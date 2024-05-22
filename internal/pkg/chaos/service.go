@@ -1,8 +1,8 @@
 package chaos
 
 import (
-	"attacknet/cmd/internal/kubernetes"
 	chaos_mesh "attacknet/cmd/internal/pkg/chaos/chaos-mesh"
+	"attacknet/cmd/internal/pkg/kubernetes"
 	log "github.com/sirupsen/logrus"
 )
 

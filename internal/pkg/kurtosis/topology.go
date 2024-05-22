@@ -11,6 +11,8 @@ import (
 	"strings"
 )
 
+//TODO: we currently don't test the validators for each service, do we need to do this?
+
 // ComposeTopology using the supplied kurtosis config file generate the expected network topology
 func ComposeTopologyFromConfig(config *Config) (*network.Topology, error) {
 	var topologyNodes []*network.Node
@@ -141,12 +143,12 @@ func composeExecutionClientFromParticipant(participant *Participant) (*network.E
 
 // hacky workaround until we can retrieve the starlark_run_config from a running enclave.
 func ComposeTopologyFromRunningEnclave(ctx context.Context, enclaveContext *enclaves.EnclaveContext) (*network.Topology, error) {
-	isRunning, err := isDevnetRunning(enclaveContext)
+	isRunning, err := hasEnclaveStarted(enclaveContext)
 	if err != nil {
 		return nil, err
 	}
 	if !isRunning {
-		return nil, errors.New("devnet is not running in the target enclave")
+		return nil, errors.New("failed to compose the topology of the target enclave, the devnet is not running and must be started first")
 	}
 
 	viableNodeServiceIDs, err := getViableNodeServiceIDs(ctx, enclaveContext)

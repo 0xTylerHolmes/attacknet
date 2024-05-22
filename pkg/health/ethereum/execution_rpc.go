@@ -1,7 +1,7 @@
 package ethereum
 
 import (
-	"attacknet/cmd/internal/kubernetes"
+	"attacknet/cmd/internal/pkg/kubernetes"
 	"attacknet/cmd/pkg/health/types"
 	"context"
 	"fmt"

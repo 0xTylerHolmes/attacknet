@@ -1,7 +1,7 @@
 package ethereum
 
 import (
-	kubernetes2 "attacknet/cmd/internal/kubernetes"
+	"attacknet/cmd/internal/pkg/kubernetes"
 	"attacknet/cmd/pkg/health/types"
 	"context"
 	"encoding/hex"
@@ -18,7 +18,7 @@ import (
 )
 
 type BeaconClientRpc struct {
-	session *kubernetes2.PortForwardsSession
+	session *kubernetes.PortForwardsSession
 	client  eth2client.BeaconBlockHeadersProvider
 }
 
@@ -73,8 +73,8 @@ func (e *EthNetworkChecker) dialToBeaconClients(ctx context.Context) ([]*BeaconC
 	}
 
 	// todo: fix this when kurtosis pkg supports setting the port
-	var port4000Batch []kubernetes2.KubePod
-	var port3500Batch []kubernetes2.KubePod
+	var port4000Batch []kubernetes.KubePod
+	var port3500Batch []kubernetes.KubePod
 
 	for _, pod := range podsToHealthCheck {
 		if strings.Contains(pod.GetName(), "prysm") {
@@ -118,7 +118,7 @@ func (e *EthNetworkChecker) dialToBeaconClients(ctx context.Context) ([]*BeaconC
 	return rpcClients, nil
 }
 
-func dialBeaconRpcClient(ctx context.Context, session *kubernetes2.PortForwardsSession) (*BeaconClientRpc, error) {
+func dialBeaconRpcClient(ctx context.Context, session *kubernetes.PortForwardsSession) (*BeaconClientRpc, error) {
 	// 3 attempts
 	retryCount := 8
 	for i := 0; i <= retryCount; i++ {

@@ -1,0 +1,1300 @@
+# the name of the running enclave
+enclave_name: clock-skew-test
+# the name of the namespace to use for injecting faults
+enclave_namespace: kt-clock-skew-test
+# the package for kurtosis to use when we are spinning up ethereum networks
+kurtosis_package_id: github.com/kurtosis-tech/ethereum-package
+# the config used by kurtosis to start/attach to this enclave
+kurtosis_config:
+  participants:
+    - el_type: geth
+      el_image: ethereum/client-go:v1.13.14
+      cl_type: lighthouse
+      cl_image: sigp/lighthouse:v5.1.1
+      count: 1
+    - el_type: geth
+      el_image: ethereum/client-go:v1.13.14
+      cl_type: lighthouse
+      cl_image: sigp/lighthouse:v5.1.1
+      count: 1
+    - el_type: geth
+      el_image: ethereum/client-go:v1.13.14
+      cl_type: prysm
+      cl_image: gcr.io/prysmaticlabs/prysm/beacon-chain:v5.0.1
+      count: 1
+    - el_type: geth
+      el_image: ethereum/client-go:v1.13.14
+      cl_type: teku
+      cl_image: consensys/teku:24.3.0-amd64
+      count: 1
+    - el_type: geth
+      el_image: ethereum/client-go:v1.13.14
+      cl_type: lodestar
+      cl_image: chainsafe/lodestar:v1.17.0
+      count: 1
+    - el_type: geth
+      el_image: ethereum/client-go:v1.13.14
+      cl_type: nimbus
+      cl_image: statusim/nimbus-eth2:multiarch-v24.2.2
+      count: 1
+  network_params:
+    num_validator_keys_per_node: 32
+  additional_services:
+    - prometheus_grafana
+    - dora
+  parallel_keystore_generation: false
+  persistent: false
+  disable_peer_scoring: true
+
+chaos_config:
+  chaos_delay: 0s
+  start_new_devnet: false
+  tests:
+    - testName: Apply -1m clock skew for 1m against 1 targets. Impacting the full node of targeted geth clients. Injecting into AttackOneMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+                      - cl-2-lighthouse-geth
+                      - val-2-lighthouse-geth
+              timeOffset: -1m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply 1m clock skew for 1m against 1 targets. Impacting the full node of targeted geth clients. Injecting into AttackOneMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+                      - cl-2-lighthouse-geth
+                      - val-2-lighthouse-geth
+              timeOffset: 1m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply -7m clock skew for 1m against 1 targets. Impacting the full node of targeted geth clients. Injecting into AttackOneMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+                      - cl-2-lighthouse-geth
+                      - val-2-lighthouse-geth
+              timeOffset: -7m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply 7m clock skew for 1m against 1 targets. Impacting the full node of targeted geth clients. Injecting into AttackOneMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+                      - cl-2-lighthouse-geth
+                      - val-2-lighthouse-geth
+              timeOffset: 7m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply -1m clock skew for 1m against 2 targets. Impacting the full node of targeted geth clients. Injecting into AttackSuperminorityMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+                      - cl-2-lighthouse-geth
+                      - val-2-lighthouse-geth
+              timeOffset: -1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/prysm Node (Node #3)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-3-geth-prysm
+                      - cl-3-prysm-geth
+                      - val-3-prysm-geth
+              timeOffset: -1m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply 1m clock skew for 1m against 2 targets. Impacting the full node of targeted geth clients. Injecting into AttackSuperminorityMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+                      - cl-2-lighthouse-geth
+                      - val-2-lighthouse-geth
+              timeOffset: 1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/prysm Node (Node #3)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-3-geth-prysm
+                      - cl-3-prysm-geth
+                      - val-3-prysm-geth
+              timeOffset: 1m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply -7m clock skew for 1m against 2 targets. Impacting the full node of targeted geth clients. Injecting into AttackSuperminorityMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+                      - cl-2-lighthouse-geth
+                      - val-2-lighthouse-geth
+              timeOffset: -7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/prysm Node (Node #3)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-3-geth-prysm
+                      - cl-3-prysm-geth
+                      - val-3-prysm-geth
+              timeOffset: -7m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply 7m clock skew for 1m against 2 targets. Impacting the full node of targeted geth clients. Injecting into AttackSuperminorityMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+                      - cl-2-lighthouse-geth
+                      - val-2-lighthouse-geth
+              timeOffset: 7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/prysm Node (Node #3)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-3-geth-prysm
+                      - cl-3-prysm-geth
+                      - val-3-prysm-geth
+              timeOffset: 7m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply -1m clock skew for 1m against 5 targets. Impacting the full node of targeted geth clients. Injecting into AttackSupermajorityMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+                      - cl-2-lighthouse-geth
+                      - val-2-lighthouse-geth
+              timeOffset: -1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/prysm Node (Node #3)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-3-geth-prysm
+                      - cl-3-prysm-geth
+                      - val-3-prysm-geth
+              timeOffset: -1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/teku Node (Node #4)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-4-geth-teku
+                      - cl-4-teku-geth
+              timeOffset: -1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/lodestar Node (Node #5)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-5-geth-lodestar
+                      - cl-5-lodestar-geth
+                      - val-5-lodestar-geth
+              timeOffset: -1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/nimbus Node (Node #6)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-6-geth-nimbus
+                      - cl-6-nimbus-geth
+              timeOffset: -1m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply 1m clock skew for 1m against 5 targets. Impacting the full node of targeted geth clients. Injecting into AttackSupermajorityMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+                      - cl-2-lighthouse-geth
+                      - val-2-lighthouse-geth
+              timeOffset: 1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/prysm Node (Node #3)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-3-geth-prysm
+                      - cl-3-prysm-geth
+                      - val-3-prysm-geth
+              timeOffset: 1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/teku Node (Node #4)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-4-geth-teku
+                      - cl-4-teku-geth
+              timeOffset: 1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/lodestar Node (Node #5)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-5-geth-lodestar
+                      - cl-5-lodestar-geth
+                      - val-5-lodestar-geth
+              timeOffset: 1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/nimbus Node (Node #6)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-6-geth-nimbus
+                      - cl-6-nimbus-geth
+              timeOffset: 1m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply -7m clock skew for 1m against 5 targets. Impacting the full node of targeted geth clients. Injecting into AttackSupermajorityMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+                      - cl-2-lighthouse-geth
+                      - val-2-lighthouse-geth
+              timeOffset: -7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/prysm Node (Node #3)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-3-geth-prysm
+                      - cl-3-prysm-geth
+                      - val-3-prysm-geth
+              timeOffset: -7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/teku Node (Node #4)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-4-geth-teku
+                      - cl-4-teku-geth
+              timeOffset: -7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/lodestar Node (Node #5)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-5-geth-lodestar
+                      - cl-5-lodestar-geth
+                      - val-5-lodestar-geth
+              timeOffset: -7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/nimbus Node (Node #6)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-6-geth-nimbus
+                      - cl-6-nimbus-geth
+              timeOffset: -7m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply 7m clock skew for 1m against 5 targets. Impacting the full node of targeted geth clients. Injecting into AttackSupermajorityMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+                      - cl-2-lighthouse-geth
+                      - val-2-lighthouse-geth
+              timeOffset: 7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/prysm Node (Node #3)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-3-geth-prysm
+                      - cl-3-prysm-geth
+                      - val-3-prysm-geth
+              timeOffset: 7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/teku Node (Node #4)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-4-geth-teku
+                      - cl-4-teku-geth
+              timeOffset: 7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/lodestar Node (Node #5)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-5-geth-lodestar
+                      - cl-5-lodestar-geth
+                      - val-5-lodestar-geth
+              timeOffset: 7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth/nimbus Node (Node #6)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-6-geth-nimbus
+                      - cl-6-nimbus-geth
+              timeOffset: 7m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply -1m clock skew for 1m against 1 targets. Impacting the client of targeted geth clients. Injecting into AttackOneMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+              timeOffset: -1m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply 1m clock skew for 1m against 1 targets. Impacting the client of targeted geth clients. Injecting into AttackOneMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+              timeOffset: 1m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply -7m clock skew for 1m against 1 targets. Impacting the client of targeted geth clients. Injecting into AttackOneMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+              timeOffset: -7m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply 7m clock skew for 1m against 1 targets. Impacting the client of targeted geth clients. Injecting into AttackOneMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+              timeOffset: 7m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply -1m clock skew for 1m against 2 targets. Impacting the client of targeted geth clients. Injecting into AttackSuperminorityMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+              timeOffset: -1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/prysm Node (Node #3)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-3-geth-prysm
+              timeOffset: -1m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply 1m clock skew for 1m against 2 targets. Impacting the client of targeted geth clients. Injecting into AttackSuperminorityMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+              timeOffset: 1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/prysm Node (Node #3)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-3-geth-prysm
+              timeOffset: 1m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply -7m clock skew for 1m against 2 targets. Impacting the client of targeted geth clients. Injecting into AttackSuperminorityMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+              timeOffset: -7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/prysm Node (Node #3)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-3-geth-prysm
+              timeOffset: -7m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply 7m clock skew for 1m against 2 targets. Impacting the client of targeted geth clients. Injecting into AttackSuperminorityMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+              timeOffset: 7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/prysm Node (Node #3)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-3-geth-prysm
+              timeOffset: 7m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply -1m clock skew for 1m against 5 targets. Impacting the client of targeted geth clients. Injecting into AttackSupermajorityMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+              timeOffset: -1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/prysm Node (Node #3)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-3-geth-prysm
+              timeOffset: -1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/teku Node (Node #4)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-4-geth-teku
+              timeOffset: -1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/lodestar Node (Node #5)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-5-geth-lodestar
+              timeOffset: -1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/nimbus Node (Node #6)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-6-geth-nimbus
+              timeOffset: -1m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply 1m clock skew for 1m against 5 targets. Impacting the client of targeted geth clients. Injecting into AttackSupermajorityMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+              timeOffset: 1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/prysm Node (Node #3)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-3-geth-prysm
+              timeOffset: 1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/teku Node (Node #4)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-4-geth-teku
+              timeOffset: 1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/lodestar Node (Node #5)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-5-geth-lodestar
+              timeOffset: 1m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/nimbus Node (Node #6)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-6-geth-nimbus
+              timeOffset: 1m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply -7m clock skew for 1m against 5 targets. Impacting the client of targeted geth clients. Injecting into AttackSupermajorityMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+              timeOffset: -7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/prysm Node (Node #3)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-3-geth-prysm
+              timeOffset: -7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/teku Node (Node #4)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-4-geth-teku
+              timeOffset: -7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/lodestar Node (Node #5)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-5-geth-lodestar
+              timeOffset: -7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/nimbus Node (Node #6)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-6-geth-nimbus
+              timeOffset: -7m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s
+    - testName: Apply 7m clock skew for 1m against 5 targets. Impacting the client of targeted geth clients. Injecting into AttackSupermajorityMatching of the matching targets.
+      planSteps:
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/lighthouse Node (Node #2)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-2-geth-lighthouse
+              timeOffset: 7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/prysm Node (Node #3)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-3-geth-prysm
+              timeOffset: 7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/teku Node (Node #4)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-4-geth-teku
+              timeOffset: 7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/lodestar Node (Node #5)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-5-geth-lodestar
+              timeOffset: 7m
+        - stepType: injectFault
+          description: 'Inject clock skew on target geth client of geth/nimbus Node (Node #6)'
+          chaosFaultSpec:
+            apiVersion: chaos-mesh.org/v1alpha1
+            kind: TimeChaos
+            spec:
+              action: delay
+              duration: 1m
+              mode: all
+              selector:
+                expressionSelectors:
+                  - key: kurtosistech.com/id
+                    operator: In
+                    values:
+                      - el-6-geth-nimbus
+              timeOffset: 7m
+        - stepType: waitForFaultCompletion
+          description: wait for faults to terminate
+      health:
+        enableChecks: true
+        gracePeriod: 10m0s

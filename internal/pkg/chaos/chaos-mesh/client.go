@@ -1,7 +1,7 @@
 package chaos_mesh
 
 import (
-	"attacknet/cmd/internal/kubernetes"
+	"attacknet/cmd/internal/pkg/kubernetes"
 	"context"
 	"encoding/json"
 	"errors"
