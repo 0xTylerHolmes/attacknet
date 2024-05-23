@@ -1,0 +1,128 @@
+enclave_name: example-chaos-experiment
+enclave_namespace: kt-example-chaos-experiment
+kurtosis_package_id: github.com/kurtosis-tech/ethereum-package
+kurtosis_config:
+  participants:
+    - el_type: nethermind
+      cl_type: prysm
+      el_extra_labels: {"ethereum-package.partition": "partitionA" }
+      cl_extra_labels: { "ethereum-package.partition": "partitionA" }
+      vc_extra_labels: { "ethereum-package.partition": "partitionA" }
+      count: 1
+    - el_type: reth
+      cl_type: lighthouse
+      el_extra_labels: { "ethereum-package.partition": "partitionA" }
+      cl_extra_labels: { "ethereum-package.partition": "partitionA" }
+      vc_extra_labels: { "ethereum-package.partition": "partitionA" }
+      count: 1
+    - el_type: besu
+      cl_type: lighthouse
+      el_extra_labels: { "ethereum-package.partition": "partitionA" }
+      cl_extra_labels: { "ethereum-package.partition": "partitionA" }
+      vc_extra_labels: { "ethereum-package.partition": "partitionA" }
+      count: 1
+    - el_type: reth
+      cl_type: prysm
+      el_extra_labels: { "ethereum-package.partition": "partitionA" }
+      cl_extra_labels: { "ethereum-package.partition": "partitionA" }
+      vc_extra_labels: { "ethereum-package.partition": "partitionA" }
+      count: 1
+    - el_type: geth
+      cl_type: prysm
+      el_extra_labels: { "ethereum-package.partition": "partitionA" }
+      cl_extra_labels: { "ethereum-package.partition": "partitionA" }
+      vc_extra_labels: { "ethereum-package.partition": "partitionA" }
+      count: 1
+    - el_type: reth
+      cl_type: teku
+      el_extra_labels: { "ethereum-package.partition": "partitionA" }
+      cl_extra_labels: { "ethereum-package.partition": "partitionA" }
+      vc_extra_labels: { "ethereum-package.partition": "partitionA" }
+      count: 1
+    - el_type: reth
+      cl_type: teku
+      el_extra_labels: { "ethereum-package.partition": "partitionA" }
+      cl_extra_labels: { "ethereum-package.partition": "partitionA" }
+      vc_extra_labels: { "ethereum-package.partition": "partitionA" }
+      count: 1
+    - el_type: reth
+      cl_type: lodestar
+      el_extra_labels: { "ethereum-package.partition": "partitionB" }
+      cl_extra_labels: { "ethereum-package.partition": "partitionB" }
+      vc_extra_labels: { "ethereum-package.partition": "partitionB" }
+      count: 1
+    - el_type: nethermind
+      cl_type: lodestar
+      el_extra_labels: { "ethereum-package.partition": "partitionB" }
+      cl_extra_labels: { "ethereum-package.partition": "partitionB" }
+      vc_extra_labels: { "ethereum-package.partition": "partitionB" }
+      count: 1
+    - el_type: besu
+      cl_type: nimbus
+      el_extra_labels: { "ethereum-package.partition": "partitionB" }
+      cl_extra_labels: { "ethereum-package.partition": "partitionB" }
+      vc_extra_labels: { "ethereum-package.partition": "partitionB" }
+      count: 1
+    - el_type: reth
+      cl_type: nimbus
+      el_extra_labels: { "ethereum-package.partition": "partitionB" }
+      cl_extra_labels: { "ethereum-package.partition": "partitionB" }
+      vc_extra_labels: { "ethereum-package.partition": "partitionB" }
+      count: 1
+    - el_type: geth
+      cl_type: lighthouse
+      el_extra_labels: { "ethereum-package.partition": "partitionB" }
+      cl_extra_labels: { "ethereum-package.partition": "partitionB" }
+      vc_extra_labels: { "ethereum-package.partition": "partitionB" }
+      count: 1
+    - el_type: nethermind
+      cl_type: prysm
+      el_extra_labels: { "ethereum-package.partition": "partitionB" }
+      cl_extra_labels: { "ethereum-package.partition": "partitionB" }
+      vc_extra_labels: { "ethereum-package.partition": "partitionB" }
+      count: 1
+    - el_type: besu
+      cl_type: teku
+      el_extra_labels: { "ethereum-package.partition": "partitionB" }
+      cl_extra_labels: { "ethereum-package.partition": "partitionB" }
+      vc_extra_labels: { "ethereum-package.partition": "partitionB" }
+      count: 1
+  network_params:
+    num_validator_keys_per_node: 16
+  additional_services:
+    - prometheus_grafana
+    - dora
+    - assertoor
+    - tx_spammer
+    - blob_spammer
+    - beacon_metrics_gazer
+    - el_forkmon
+  parallel_keystore_generation: false
+  persistent: false
+  disable_peer_scoring: true
+chaos_config:
+  start_new_devnet: false
+  chaos_delay: 30s
+  tests:
+  - testName: packetdrop
+    health:
+      enableChecks: true
+      gracePeriod: 2m0s
+    planSteps:
+    - stepType: injectFault
+      description: "inject packet drop fault"
+      chaosFaultSpec:
+        kind: NetworkChaos
+        apiVersion: chaos-mesh.org/v1alpha1
+        spec:
+          selector:
+            labelSelectors:
+              kurtosistech.com.custom/ethereum-package.partition: partitionB
+          mode: all
+          action: loss
+          duration: 120s
+          loss:
+            loss: '100'
+          direction: to
+    - stepType: waitForFaultCompletion
+      description: wait for faults to terminate

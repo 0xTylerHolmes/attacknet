@@ -1,0 +1,99 @@
+participants:
+  - el_type: nethermind
+    cl_type: prysm
+    el_extra_labels: { "ethereum-package.partition": "partitionA", "ethereum-package.service-type": "execution" }
+    cl_extra_labels: { "ethereum-package.partition": "partitionA", "ethereum-package.service-type": "beacon" }
+    vc_extra_labels: { "ethereum-package.partition": "partitionA", "ethereum-package.service-type": "validator" }
+    count: 1
+  - el_type: reth
+    cl_type: lighthouse
+    el_extra_labels: { "ethereum-package.partition": "partitionA", "ethereum-package.service-type": "execution" }
+    cl_extra_labels: { "ethereum-package.partition": "partitionA", "ethereum-package.service-type": "beacon" }
+    vc_extra_labels: { "ethereum-package.partition": "partitionA", "ethereum-package.service-type": "validator" }
+    count: 1
+  - el_type: besu
+    cl_type: lighthouse
+    el_extra_labels: { "ethereum-package.partition": "partitionA", "ethereum-package.service-type": "execution" }
+    cl_extra_labels: { "ethereum-package.partition": "partitionA", "ethereum-package.service-type": "beacon" }
+    vc_extra_labels: { "ethereum-package.partition": "partitionA", "ethereum-package.service-type": "validator" }
+    count: 1
+  - el_type: reth
+    cl_type: prysm
+    el_extra_labels: { "ethereum-package.partition": "partitionA", "ethereum-package.service-type": "execution" }
+    cl_extra_labels: { "ethereum-package.partition": "partitionA", "ethereum-package.service-type": "beacon" }
+    vc_extra_labels: { "ethereum-package.partition": "partitionA", "ethereum-package.service-type": "validator" }
+    count: 1
+  - el_type: geth
+    cl_type: prysm
+    el_extra_labels: { "ethereum-package.partition": "partitionA", ethereum-package.service-type: "execution" }
+    cl_extra_labels: { "ethereum-package.partition": "partitionA", ethereum-package.service-type: "beacon" }
+    vc_extra_labels: { "ethereum-package.partition": "partitionA", ethereum-package.service-type: "validator" }
+    count: 1
+  - el_type: reth
+    cl_type: teku
+    el_extra_labels: { "ethereum-package.partition": "partitionA", ethereum-package.service-type: "execution" }
+    cl_extra_labels: { "ethereum-package.partition": "partitionA", ethereum-package.service-type: "beacon" }
+    vc_extra_labels: { "ethereum-package.partition": "partitionA", ethereum-package.service-type: "validator" }
+    count: 1
+  - el_type: reth
+    cl_type: teku
+    el_extra_labels: { "ethereum-package.partition": "partitionA", ethereum-package.service-type: "execution" }
+    cl_extra_labels: { "ethereum-package.partition": "partitionA", ethereum-package.service-type: "beacon" }
+    vc_extra_labels: { "ethereum-package.partition": "partitionA", ethereum-package.service-type: "validator" }
+    count: 1
+  - el_type: reth
+    cl_type: lodestar
+    el_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "execution" }
+    cl_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "beacon" }
+    vc_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "validator" }
+    count: 1
+  - el_type: nethermind
+    cl_type: lodestar
+    el_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "execution" }
+    cl_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "beacon" }
+    vc_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "validator" }
+    count: 1
+  - el_type: besu
+    cl_type: nimbus
+    el_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "execution" }
+    cl_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "beacon" }
+    vc_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "validator" }
+    count: 1
+  - el_type: reth
+    cl_type: nimbus
+    el_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "execution" }
+    cl_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "beacon" }
+    vc_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "validator" }
+    count: 1
+  - el_type: geth
+    cl_type: lighthouse
+    el_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "execution" }
+    cl_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "beacon" }
+    vc_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "validator" }
+    count: 1
+  - el_type: nethermind
+    cl_type: prysm
+    el_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "execution" }
+    cl_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "beacon" }
+    vc_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "validator" }
+    count: 1
+  - el_type: besu
+    cl_type: teku
+    el_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "execution" }
+    cl_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "beacon" }
+    vc_extra_labels: { "ethereum-package.partition": "partitionB", ethereum-package.service-type: "validator" }
+    count: 1
+network_params:
+  num_validator_keys_per_node: 16
+additional_services:
+  - prometheus_grafana
+  - dora
+  - assertoor
+  - tx_spammer
+  - blob_spammer
+  - beacon_metrics_gazer
+  - el_forkmon
+  - forky
+parallel_keystore_generation: false
+persistent: false
+disable_peer_scoring: true
