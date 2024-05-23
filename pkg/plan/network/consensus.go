@@ -1,6 +1,7 @@
 package network
 
 import (
+	"attacknet/cmd/internal/pkg/network"
 	"github.com/kurtosis-tech/stacktrace"
 	"strings"
 )
@@ -11,7 +12,7 @@ const defaultValCpu = 500
 const defaultClMem = 1536
 const defaultValMem = 512
 
-func composeConsensusTesterNetwork(nodeMultiplier int, consensusClient string, execClientList []ClientVersion, consClientMap map[string]ClientVersion) ([]*Node, error) {
+func composeConsensusTesterNetwork(nodeMultiplier int, consensusClient string, execClientList []ClientVersion, consClientMap map[string]ClientVersion) ([]*network.Node, error) {
 	// make sure consensusClient actually exists
 	clientUnderTest, ok := consClientMap[consensusClient]
 	if !ok {
@@ -24,8 +25,8 @@ func composeConsensusTesterNetwork(nodeMultiplier int, consensusClient string, e
 	return nodes, err
 }
 
-func composeNodesForClTesting(nodeMultiplier, index int, consensusClient ClientVersion, execClients []ClientVersion) ([]*Node, error) {
-	var nodes []*Node
+func composeNodesForClTesting(nodeMultiplier, index int, consensusClient ClientVersion, execClients []ClientVersion) ([]*network.Node, error) {
+	var nodes []*network.Node
 
 	for _, execClient := range execClients {
 		for i := 0; i < nodeMultiplier; i++ {
@@ -38,7 +39,7 @@ func composeNodesForClTesting(nodeMultiplier, index int, consensusClient ClientV
 	return nodes, nil
 }
 
-func composeConsensusClient(config ClientVersion) *ConsensusClient {
+func composeConsensusClient(config ClientVersion) *network.ConsensusClient {
 	image := config.Image
 	validatorImage := ""
 
@@ -48,7 +49,7 @@ func composeConsensusClient(config ClientVersion) *ConsensusClient {
 		validatorImage = images[1]
 	}
 	if config.HasSidecar {
-		return &ConsensusClient{
+		return &network.ConsensusClient{
 			Type:                  config.Name,
 			Image:                 image,
 			HasValidatorSidecar:   true,
@@ -60,7 +61,7 @@ func composeConsensusClient(config ClientVersion) *ConsensusClient {
 			SidecarMemoryRequired: defaultValMem,
 		}
 	} else {
-		return &ConsensusClient{
+		return &network.ConsensusClient{
 			Type:                  config.Name,
 			Image:                 image,
 			HasValidatorSidecar:   false,

@@ -1,16 +1,17 @@
 package plan
 
 import (
-	"attacknet/cmd/pkg/plan/network"
+	"attacknet/cmd/internal/pkg/kurtosis"
+	"attacknet/cmd/internal/pkg/network"
 	"github.com/kurtosis-tech/stacktrace"
 	"gopkg.in/yaml.v3"
 	"strings"
 )
 
-func SerializeNetworkTopology(nodes []*network.Node, config *network.GenesisConfig) ([]byte, error) {
+func SerializeNetworkTopology(nodes []*network.Node, config *kurtosis.GenesisConfig) (*kurtosis.Config, error) {
 	serializableNodes := serializeNodes(nodes)
-
-	netConfig := &EthKurtosisConfig{
+	//TODO clean up
+	return &kurtosis.Config{
 		Participants: serializableNodes,
 		NetParams:    *config,
 		AdditionalServices: []string{
@@ -20,14 +21,8 @@ func SerializeNetworkTopology(nodes []*network.Node, config *network.GenesisConf
 		ParallelKeystoreGen: false,
 		Persistent:          false,
 		DisablePeerScoring:  true,
-	}
+	}, nil
 
-	bs, err := yaml.Marshal(netConfig)
-	if err != nil {
-		return nil, stacktrace.Propagate(err, "intermediate yaml marshalling failed")
-	}
-
-	return bs, nil
 }
 
 func DeserializeNetworkTopology(conf []byte) ([]*network.Node, error) {
@@ -84,8 +79,8 @@ func DeserializeNetworkTopology(conf []byte) ([]*network.Node, error) {
 	return nodes, nil
 }
 
-func serializeNodes(nodes []*network.Node) []*Participant {
-	participants := make([]*Participant, len(nodes))
+func serializeNodes(nodes []*network.Node) []*kurtosis.Participant {
+	participants := make([]*kurtosis.Participant, len(nodes))
 	for i, node := range nodes {
 		consensusImage := node.Consensus.Image
 
@@ -94,27 +89,27 @@ func serializeNodes(nodes []*network.Node) []*Participant {
 		//	consensusImage = consensusImage + fmt.Sprintf(",%s", node.Consensus.ValidatorImage)
 		//}
 
-		p := &Participant{
+		p := &kurtosis.Participant{
 			ElClientType:  node.Execution.Type,
-			ElClientImage: node.Execution.Image,
+			ElClientImage: &node.Execution.Image,
 
 			ClClientType:  node.Consensus.Type,
-			ClClientImage: consensusImage,
+			ClClientImage: &consensusImage,
 
-			ElMinCpu:    node.Execution.CpuRequired,
-			ElMaxCpu:    node.Execution.CpuRequired,
-			ElMinMemory: node.Execution.MemoryRequired,
-			ElMaxMemory: node.Execution.MemoryRequired,
+			ElMinCpu:    &node.Execution.CpuRequired,
+			ElMaxCpu:    &node.Execution.CpuRequired,
+			ElMinMemory: &node.Execution.MemoryRequired,
+			ElMaxMemory: &node.Execution.MemoryRequired,
 
-			ClMinCpu:    node.Consensus.CpuRequired,
-			ClMaxCpu:    node.Consensus.CpuRequired,
-			ClMinMemory: node.Consensus.MemoryRequired,
-			ClMaxMemory: node.Consensus.MemoryRequired,
+			ClMinCpu:    &node.Consensus.CpuRequired,
+			ClMaxCpu:    &node.Consensus.CpuRequired,
+			ClMinMemory: &node.Consensus.MemoryRequired,
+			ClMaxMemory: &node.Consensus.MemoryRequired,
 
-			ValMinCpu:    node.Consensus.SidecarCpuRequired,
-			ValMaxCpu:    node.Consensus.SidecarCpuRequired,
-			ValMinMemory: node.Consensus.SidecarMemoryRequired,
-			ValMaxMemory: node.Consensus.SidecarMemoryRequired,
+			ValMinCpu:    &node.Consensus.SidecarCpuRequired,
+			ValMaxCpu:    &node.Consensus.SidecarCpuRequired,
+			ValMinMemory: &node.Consensus.SidecarMemoryRequired,
+			ValMaxMemory: &node.Consensus.SidecarMemoryRequired,
 			Count:        1,
 		}
 		participants[i] = p

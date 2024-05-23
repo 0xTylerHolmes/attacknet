@@ -1,7 +1,6 @@
-package suite
+package chaos
 
 import (
-	"attacknet/cmd/internal/pkg/chaos"
 	"fmt"
 	"github.com/kurtosis-tech/stacktrace"
 	yaml "gopkg.in/yaml.v3"
@@ -165,33 +164,33 @@ func convertFaultSpecToMapSpecial(s NetworkChaosWrapper) (map[string]interface{}
 	return faultSpec, nil
 }
 
-func convertFaultSpecToInjectStep(description string, s interface{}) (*chaos.PlanStep, error) {
+func convertFaultSpecToInjectStep(description string, s interface{}) (*PlanStep, error) {
 	faultSpecMap, err := convertFaultSpecToMap(s)
 	if err != nil {
 		return nil, err
 	}
 
-	return &chaos.PlanStep{
-		StepType:        chaos.InjectFault,
+	return &PlanStep{
+		StepType:        InjectFault,
 		StepDescription: description,
 		Spec:            faultSpecMap,
 	}, nil
 }
 
-func convertFaultSpecToInjectStepSpecial(description string, s NetworkChaosWrapper) (*chaos.PlanStep, error) {
+func convertFaultSpecToInjectStepSpecial(description string, s NetworkChaosWrapper) (*PlanStep, error) {
 	faultSpecMap, err := convertFaultSpecToMapSpecial(s)
 	if err != nil {
 		return nil, err
 	}
 
-	return &chaos.PlanStep{
-		StepType:        chaos.InjectFault,
+	return &PlanStep{
+		StepType:        InjectFault,
 		StepDescription: description,
 		Spec:            faultSpecMap,
 	}, nil
 }
 
-func buildClockSkewFault(description, timeOffset, duration string, expressionSelectors []ChaosExpressionSelector) (*chaos.PlanStep, error) {
+func BuildClockSkewFault(description, timeOffset, duration string, expressionSelectors []ChaosExpressionSelector) (*PlanStep, error) {
 	t := TimeChaosWrapper{
 		TimeChaosFault: TimeChaosFault{
 			Kind:       "TimeChaos",
@@ -210,7 +209,7 @@ func buildClockSkewFault(description, timeOffset, duration string, expressionSel
 	return convertFaultSpecToInjectStep(description, t)
 }
 
-func buildPodRestartFault(description string, expressionSelectors []ChaosExpressionSelector) (*chaos.PlanStep, error) {
+func BuildPodRestartFault(description string, expressionSelectors []ChaosExpressionSelector) (*PlanStep, error) {
 	t := PodChaosWrapper{
 		PodChaosFault: PodChaosFault{
 			Kind:       "PodChaos",
@@ -245,8 +244,8 @@ func getVolumePathForIOFault(podName string) (string, error) {
 	return volumeTarget, nil
 }
 
-func buildIOLatencyFault(description string, expressionSelector ChaosExpressionSelector, delay *time.Duration, percent int, duration *time.Duration) ([]chaos.PlanStep, error) {
-	var steps []chaos.PlanStep
+func BuildIOLatencyFault(description string, expressionSelector ChaosExpressionSelector, delay *time.Duration, percent int, duration *time.Duration) ([]PlanStep, error) {
+	var steps []PlanStep
 
 	for _, podName := range expressionSelector.Values {
 		volumePath, err := getVolumePathForIOFault(podName)
@@ -282,7 +281,7 @@ func buildIOLatencyFault(description string, expressionSelector ChaosExpressionS
 	return steps, nil
 }
 
-func buildNetworkLatencyFault(description string, expressionSelectors []ChaosExpressionSelector, delay, jitter, duration *time.Duration, correlation int) (*chaos.PlanStep, error) {
+func BuildNetworkLatencyFault(description string, expressionSelectors []ChaosExpressionSelector, delay, jitter, duration *time.Duration, correlation int) (*PlanStep, error) {
 	t := NetworkChaosWrapper{
 		NetworkChaosFault: NetworkChaosFault{
 			Kind:       "NetworkChaos",
@@ -306,7 +305,7 @@ func buildNetworkLatencyFault(description string, expressionSelectors []ChaosExp
 	return convertFaultSpecToInjectStepSpecial(description, t)
 }
 
-func buildPacketDropFault(description string, expressionSelectors []ChaosExpressionSelector, percent int, direction string, duration *time.Duration) (*chaos.PlanStep, error) {
+func BuildPacketDropFault(description string, expressionSelectors []ChaosExpressionSelector, percent int, direction string, duration *time.Duration) (*PlanStep, error) {
 	t := NetworkChaosWrapper{
 		NetworkChaosFault: NetworkChaosFault{
 			Kind:       "NetworkChaos",

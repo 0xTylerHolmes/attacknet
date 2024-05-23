@@ -1,13 +1,14 @@
 package suite
 
 import (
-	"attacknet/cmd/pkg/plan/network"
+	"attacknet/cmd/internal/pkg/chaos"
+	"attacknet/cmd/internal/pkg/network"
 	"fmt"
 	"github.com/kurtosis-tech/stacktrace"
 )
 
 type ChaosTargetSelector struct {
-	Selector    []ChaosExpressionSelector
+	Selector    []chaos.ChaosExpressionSelector
 	Description string
 }
 
@@ -124,7 +125,7 @@ func createTargetSelectorForNode(networkNodeCount int, node *network.Node) *Chao
 		targets = append(targets, valId)
 	}
 
-	selector := ChaosExpressionSelector{
+	selector := chaos.ChaosExpressionSelector{
 		Key:      "kurtosistech.com/id",
 		Operator: "In",
 		Values:   targets,
@@ -132,14 +133,14 @@ func createTargetSelectorForNode(networkNodeCount int, node *network.Node) *Chao
 
 	description := fmt.Sprintf("%s/%s Node (Node #%d)", node.Execution.Type, node.Consensus.Type, node.Index)
 	return &ChaosTargetSelector{
-		Selector:    []ChaosExpressionSelector{selector},
+		Selector:    []chaos.ChaosExpressionSelector{selector},
 		Description: description,
 	}
 }
 
 func createTargetSelectorForExecClient(networkNodeCount int, node *network.Node) *ChaosTargetSelector {
 	elId := ConvertToNodeIdTag(networkNodeCount, node, Execution)
-	selector := ChaosExpressionSelector{
+	selector := chaos.ChaosExpressionSelector{
 		Key:      "kurtosistech.com/id",
 		Operator: "In",
 		Values:   []string{elId},
@@ -147,7 +148,7 @@ func createTargetSelectorForExecClient(networkNodeCount int, node *network.Node)
 
 	description := fmt.Sprintf("%s client of %s/%s Node (Node #%d)", node.Execution.Type, node.Execution.Type, node.Consensus.Type, node.Index)
 	return &ChaosTargetSelector{
-		Selector:    []ChaosExpressionSelector{selector},
+		Selector:    []chaos.ChaosExpressionSelector{selector},
 		Description: description,
 	}
 }
@@ -162,7 +163,7 @@ func createTargetSelectorForConsensusClient(networkNodeCount int, node *network.
 		targets = append(targets, valId)
 	}
 
-	selector := ChaosExpressionSelector{
+	selector := chaos.ChaosExpressionSelector{
 		Key:      "kurtosistech.com/id",
 		Operator: "In",
 		Values:   targets,
@@ -170,7 +171,7 @@ func createTargetSelectorForConsensusClient(networkNodeCount int, node *network.
 
 	description := fmt.Sprintf("%s client of %s/%s Node (Node #%d)", node.Consensus.Type, node.Execution.Type, node.Consensus.Type, node.Index)
 	return &ChaosTargetSelector{
-		Selector:    []ChaosExpressionSelector{selector},
+		Selector:    []chaos.ChaosExpressionSelector{selector},
 		Description: description,
 	}
 }

@@ -2,7 +2,7 @@ package suite
 
 import (
 	"attacknet/cmd/internal/pkg/chaos"
-	"attacknet/cmd/pkg/plan/network"
+	"attacknet/cmd/internal/pkg/network"
 	"fmt"
 	"github.com/kurtosis-tech/stacktrace"
 	log "github.com/sirupsen/logrus"
@@ -34,7 +34,7 @@ func ConvertToNodeIdTag(networkNodeCount int, node *network.Node, client clientT
 	case Consensus:
 		return fmt.Sprintf("cl-%s-%s-%s", nodeNumStr, node.Consensus.Type, node.Execution.Type)
 	case Validator:
-		return fmt.Sprintf("val-%s-%s-%s", nodeNumStr, node.Consensus.Type, node.Execution.Type)
+		return fmt.Sprintf("vc-%s-%s-%s", nodeNumStr, node.Consensus.Type, node.Execution.Type)
 	default:
 		log.Errorf("Unrecognized node type %s", client)
 		return ""
@@ -50,7 +50,7 @@ func composeNodeClockSkewPlanSteps(targetsSelected []*ChaosTargetSelector, skew,
 	for _, target := range targetsSelected {
 		description := fmt.Sprintf("Inject clock skew on target %s", target.Description)
 
-		skewStep, err := buildClockSkewFault(description, skew, duration, target.Selector)
+		skewStep, err := chaos.BuildClockSkewFault(description, skew, duration, target.Selector)
 		if err != nil {
 			return nil, err
 		}
@@ -65,7 +65,7 @@ func composeNodeRestartSteps(targetsSelected []*ChaosTargetSelector) ([]chaos.Pl
 
 	for _, target := range targetsSelected {
 		description := fmt.Sprintf("Restart target %s", target.Description)
-		restartStep, err := buildPodRestartFault(description, target.Selector)
+		restartStep, err := chaos.BuildPodRestartFault(description, target.Selector)
 
 		if err != nil {
 			return nil, err
@@ -76,7 +76,7 @@ func composeNodeRestartSteps(targetsSelected []*ChaosTargetSelector) ([]chaos.Pl
 	return steps, nil
 }
 
-func areExprSelectorsMatchingIdIn(expressionSelectors []ChaosExpressionSelector) error {
+func areExprSelectorsMatchingIdIn(expressionSelectors []chaos.ChaosExpressionSelector) error {
 	for _, selector := range expressionSelectors {
 		if selector.Key != "kurtosistech.com/id" {
 			return stacktrace.NewError("i/o latency faults can only be target using pod id: %s", selector.Key)
@@ -100,7 +100,7 @@ func composeIOLatencySteps(targetsSelected []*ChaosTargetSelector, delay *time.D
 
 		// for i/o faults, we need to create a plan step for each individual pod because the fault spec has to say the data path.
 		for _, selector := range target.Selector {
-			ioLatencySteps, err := buildIOLatencyFault(description, selector, delay, percent, duration)
+			ioLatencySteps, err := chaos.BuildIOLatencyFault(description, selector, delay, percent, duration)
 			if err != nil {
 				return nil, err
 			}
@@ -117,7 +117,7 @@ func composeNetworkLatencySteps(targetsSelected []*ChaosTargetSelector, delay, j
 	for _, target := range targetsSelected {
 		description := fmt.Sprintf("Inject network latency on target %s", target.Description)
 
-		skewStep, err := buildNetworkLatencyFault(description, target.Selector, delay, jitter, duration, correlation)
+		skewStep, err := chaos.BuildNetworkLatencyFault(description, target.Selector, delay, jitter, duration, correlation)
 		if err != nil {
 			return nil, err
 		}
@@ -132,7 +132,7 @@ func composePacketDropSteps(targetsSelected []*ChaosTargetSelector, percent int,
 	for _, target := range targetsSelected {
 		description := fmt.Sprintf("Inject network latency on target %s", target.Description)
 
-		skewStep, err := buildPacketDropFault(description, target.Selector, percent, direction, duration)
+		skewStep, err := chaos.BuildPacketDropFault(description, target.Selector, percent, direction, duration)
 		if err != nil {
 			return nil, err
 		}

@@ -1,13 +1,14 @@
 package network
 
 import (
+	"attacknet/cmd/internal/pkg/network"
 	"github.com/kurtosis-tech/stacktrace"
 )
 
 const defaultElCpu = 768
 const defaultElMem = 1024
 
-func composeExecTesterNetwork(nodeMultiplier int, execClient string, consClientList []ClientVersion, execClientMap map[string]ClientVersion) ([]*Node, error) {
+func composeExecTesterNetwork(nodeMultiplier int, execClient string, consClientList []ClientVersion, execClientMap map[string]ClientVersion) ([]*network.Node, error) {
 	// make sure execClient actually exists
 	clientUnderTest, ok := execClientMap[execClient]
 	if !ok {
@@ -20,8 +21,8 @@ func composeExecTesterNetwork(nodeMultiplier int, execClient string, consClientL
 	return nodes, err
 }
 
-func composeNodesForElTesting(nodeMultiplier, index int, execClient ClientVersion, consClientList []ClientVersion) ([]*Node, error) {
-	var nodes []*Node
+func composeNodesForElTesting(nodeMultiplier, index int, execClient ClientVersion, consClientList []ClientVersion) ([]*network.Node, error) {
+	var nodes []*network.Node
 
 	for _, consensusClient := range consClientList {
 		for i := 0; i < nodeMultiplier; i++ {
@@ -34,8 +35,8 @@ func composeNodesForElTesting(nodeMultiplier, index int, execClient ClientVersio
 	return nodes, nil
 }
 
-func composeExecutionClient(config ClientVersion) *ExecutionClient {
-	return &ExecutionClient{
+func composeExecutionClient(config ClientVersion) *network.ExecutionClient {
+	return &network.ExecutionClient{
 		Type:           config.Name,
 		Image:          config.Image,
 		ExtraLabels:    make(map[string]string),

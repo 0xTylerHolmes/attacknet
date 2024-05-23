@@ -2,7 +2,8 @@ package suite
 
 import (
 	"attacknet/cmd/internal/pkg/chaos"
-	"attacknet/cmd/pkg/plan/network"
+
+	"attacknet/cmd/internal/pkg/network"
 	"fmt"
 	"github.com/kurtosis-tech/stacktrace"
 	log "github.com/sirupsen/logrus"

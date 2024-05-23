@@ -1,15 +1,17 @@
 package plan
 
 import (
+	"attacknet/cmd/internal/pkg/kurtosis"
 	"attacknet/cmd/pkg/plan/network"
+	planNetwork "attacknet/cmd/pkg/plan/network"
 	"attacknet/cmd/pkg/plan/suite"
 )
 
 type PlannerConfig struct {
-	ExecutionClients []network.ClientVersion `yaml:"execution"`
-	ConsensusClients []network.ClientVersion `yaml:"consensus"`
-	//Topology            network.Topology                `yaml:"network"`
-	GenesisParams       network.GenesisConfig           `yaml:"network_params"`
+	ExecutionClients    []network.ClientVersion         `yaml:"execution"`
+	ConsensusClients    []network.ClientVersion         `yaml:"consensus"`
+	Topology            planNetwork.Topology            `yaml:"topology"`
+	GenesisParams       kurtosis.GenesisConfig          `yaml:"network_params"`
 	KurtosisPackage     string                          `yaml:"kurtosis_package"`
 	KubernetesNamespace string                          `yaml:"kubernetes_namespace"`
 	FaultConfig         suite.PlannerFaultConfiguration `yaml:"fault_config"`

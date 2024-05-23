@@ -11,9 +11,9 @@ type ValidatorClient struct {
 	Image string
 
 	//TODO do we really need this for basic topology information
-	//ExtraLabels map[string]string
-	//CpuRequired int
-	//MemoryRequired int
+	ExtraLabels    map[string]string
+	CpuRequired    int
+	MemoryRequired int
 }
 
 type ConsensusClient struct {
@@ -23,25 +23,25 @@ type ConsensusClient struct {
 	ValidatorType       string
 	ValidatorImage      string
 	//TODO do we really need this for basic topology information
-	//ValidatorExtraLabels  map[string]string
-	//ExtraLabels           map[string]string
-	//CpuRequired           int
-	//MemoryRequired        int
-	//SidecarCpuRequired    int
-	//SidecarMemoryRequired int
+	ValidatorExtraLabels  map[string]string
+	ExtraLabels           map[string]string
+	CpuRequired           int
+	MemoryRequired        int
+	SidecarCpuRequired    int
+	SidecarMemoryRequired int
 }
 
 type ExecutionClient struct {
 	Type  string
 	Image string
 	//TODO do we really need this for basic topology information
-	//ExtraLabels    map[string]string
-	//CpuRequired    int
-	//MemoryRequired int
+	ExtraLabels    map[string]string
+	CpuRequired    int
+	MemoryRequired int
 }
 
 type Node struct {
-	Index          int
+	Index          int // due to the way the ethereum-package assigns indexes we use strings. The index could be 9 or 09 depending on size
 	Execution      *ExecutionClient
 	Consensus      *ConsensusClient
 	ConsensusVotes int

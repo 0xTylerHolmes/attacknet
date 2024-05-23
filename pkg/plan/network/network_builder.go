@@ -1,6 +1,7 @@
 package network
 
 import (
+	"attacknet/cmd/internal/pkg/network"
 	"github.com/kurtosis-tech/stacktrace"
 	log "github.com/sirupsen/logrus"
 )
@@ -31,7 +32,7 @@ func clientListsToMaps(execClients, consClients []ClientVersion) (execClientMap,
 	return execClientMap, consClientMap, nil
 }
 
-func ComposeNetworkTopology(topology Topology, clientUnderTest string, execClients, consClients []ClientVersion) ([]*Node, error) {
+func ComposeNetworkTopology(topology Topology, clientUnderTest string, execClients, consClients []ClientVersion) ([]*network.Node, error) {
 	if clientUnderTest == "all" {
 		return nil, stacktrace.NewError("target clientUnderTest 'all' not supported yet")
 	}
@@ -49,7 +50,9 @@ func ComposeNetworkTopology(topology Topology, clientUnderTest string, execClien
 		return nil, err
 	}
 
-	var nodes []*Node
+	var nodes []*network.Node
+	log.Debugf("execClientMap: %v bootnodeEL: %s", execClientMap, topology.BootnodeEL)
+	// TODO: delete
 	bootnode, err := composeBootnode(topology.BootnodeEL, topology.BootnodeCl, execClientMap, consClientMap)
 	if err != nil {
 		return nil, err
@@ -63,7 +66,7 @@ func ComposeNetworkTopology(topology Topology, clientUnderTest string, execClien
 	}
 
 	// assume already checked clientUnderTest is a member of consClients or execClients
-	var nodesToTest []*Node
+	var nodesToTest []*network.Node
 	if isExecutionClient {
 		nodesToTest, err = composeExecTesterNetwork(nodeMultiplier, clientUnderTest, consClients, execClientMap)
 	} else {
@@ -90,10 +93,10 @@ func ComposeNetworkTopology(topology Topology, clientUnderTest string, execClien
 	return nodes, nil
 }
 
-func composeNodesToSatisfyTargetPercent(percentTarget float32, targetedNodeCount int, startIndex int, clientUnderTest string, execClients, consClients []ClientVersion) ([]*Node, error) {
+func composeNodesToSatisfyTargetPercent(percentTarget float32, targetedNodeCount int, startIndex int, clientUnderTest string, execClients, consClients []ClientVersion) ([]*network.Node, error) {
 	// percent target is unconfigured
 	if percentTarget == 0 {
-		return []*Node{}, nil
+		return []*network.Node{}, nil
 	}
 
 	nodesToAdd, err := calcNodesNeededToSatisfyTarget(percentTarget, targetedNodeCount)
@@ -105,8 +108,8 @@ func composeNodesToSatisfyTargetPercent(percentTarget float32, targetedNodeCount
 	return nodes, err
 }
 
-func pickExtraNodeClients(startNodeIndex, nodeCount int, clientUnderTest string, execClients, consClients []ClientVersion) ([]*Node, error) {
-	var nodes []*Node
+func pickExtraNodeClients(startNodeIndex, nodeCount int, clientUnderTest string, execClients, consClients []ClientVersion) ([]*network.Node, error) {
+	var nodes []*network.Node
 	//execIndex := 0
 	//consIndex := 0
 Exit:
