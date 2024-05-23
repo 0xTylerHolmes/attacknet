@@ -1,4 +1,4 @@
-package network
+package planner
 
 import (
 	"attacknet/cmd/internal/pkg/network"
@@ -8,7 +8,7 @@ import (
 const defaultElCpu = 768
 const defaultElMem = 1024
 
-func composeExecTesterNetwork(nodeMultiplier int, execClient string, consClientList []ClientVersion, execClientMap map[string]ClientVersion) ([]*network.Node, error) {
+func composeExecTesterNetwork(nodeMultiplier int, execClient string, consClientList []ConsensusClientVersion, execClientMap map[string]ConsensusClientVersion) ([]*network.Node, error) {
 	// make sure execClient actually exists
 	clientUnderTest, ok := execClientMap[execClient]
 	if !ok {
@@ -21,7 +21,7 @@ func composeExecTesterNetwork(nodeMultiplier int, execClient string, consClientL
 	return nodes, err
 }
 
-func composeNodesForElTesting(nodeMultiplier, index int, execClient ClientVersion, consClientList []ClientVersion) ([]*network.Node, error) {
+func composeNodesForElTesting(nodeMultiplier, index int, execClient ConsensusClientVersion, consClientList []ConsensusClientVersion) ([]*network.Node, error) {
 	var nodes []*network.Node
 
 	for _, consensusClient := range consClientList {
@@ -35,10 +35,10 @@ func composeNodesForElTesting(nodeMultiplier, index int, execClient ClientVersio
 	return nodes, nil
 }
 
-func composeExecutionClient(config ClientVersion) *network.ExecutionClient {
+func composeExecutionClient(config ConsensusClientVersion) *network.ExecutionClient {
 	return &network.ExecutionClient{
 		Type:           config.Name,
-		Image:          config.Image,
+		Image:          config.BeaconImage,
 		ExtraLabels:    make(map[string]string),
 		CpuRequired:    defaultElCpu,
 		MemoryRequired: defaultElMem,

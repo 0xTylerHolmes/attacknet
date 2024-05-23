@@ -3,13 +3,13 @@ package plan
 import (
 	"attacknet/cmd/internal/pkg/chaos"
 	"attacknet/cmd/internal/pkg/kurtosis"
-	planNetwork "attacknet/cmd/pkg/plan/network"
+	"attacknet/cmd/internal/pkg/planner"
 	"attacknet/cmd/pkg/plan/suite"
 )
 
-func BuildPlan(config *PlannerConfig) (*chaos.Config, *kurtosis.Config, error) {
+func BuildPlan(config *planner.Config) (*chaos.Config, *kurtosis.Config, error) {
 
-	nodes, err := planNetwork.ComposeNetworkTopology(
+	nodes, err := planner.ComposeNetworkTopology(
 		config.Topology,
 		config.FaultConfig.TargetClient,
 		config.ExecutionClients,

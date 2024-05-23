@@ -1,4 +1,4 @@
-package network
+package planner
 
 import (
 	"attacknet/cmd/internal/pkg/network"
@@ -6,9 +6,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func clientListsToMaps(execClients, consClients []ClientVersion) (execClientMap, consClientMap map[string]ClientVersion, err error) {
-	populateClientMap := func(li []ClientVersion) (map[string]ClientVersion, error) {
-		clients := make(map[string]ClientVersion)
+func clientListsToMaps(execClients, consClients []ConsensusClientVersion) (execClientMap, consClientMap map[string]ConsensusClientVersion, err error) {
+	populateClientMap := func(li []ConsensusClientVersion) (map[string]ConsensusClientVersion, error) {
+		clients := make(map[string]ConsensusClientVersion)
 		for _, client := range li {
 			_, exists := clients[client.Name]
 			if exists {
@@ -32,7 +32,7 @@ func clientListsToMaps(execClients, consClients []ClientVersion) (execClientMap,
 	return execClientMap, consClientMap, nil
 }
 
-func ComposeNetworkTopology(topology Topology, clientUnderTest string, execClients, consClients []ClientVersion) ([]*network.Node, error) {
+func ComposeNetworkTopology(topology FaultTopology, clientUnderTest string, execClients, consClients []ConsensusClientVersion) ([]*network.Node, error) {
 	if clientUnderTest == "all" {
 		return nil, stacktrace.NewError("target clientUnderTest 'all' not supported yet")
 	}
@@ -51,13 +51,13 @@ func ComposeNetworkTopology(topology Topology, clientUnderTest string, execClien
 	}
 
 	var nodes []*network.Node
-	log.Debugf("execClientMap: %v bootnodeEL: %s", execClientMap, topology.BootnodeEL)
-	// TODO: delete
-	bootnode, err := composeBootnode(topology.BootnodeEL, topology.BootnodeCl, execClientMap, consClientMap)
-	if err != nil {
-		return nil, err
-	}
-	nodes = append(nodes, bootnode)
+	//log.Debugf("execClientMap: %v bootnodeEL: %s", execClientMap, topology.BootnodeEL)
+	//// TODO: delete
+	//bootnode, err := composeBootnode(topology.BootnodeEL, topology.BootnodeCl, execClientMap, consClientMap)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//nodes = append(nodes, bootnode)
 
 	// determine whether a node multiplier is applied.
 	var nodeMultiplier int = 1
@@ -93,7 +93,7 @@ func ComposeNetworkTopology(topology Topology, clientUnderTest string, execClien
 	return nodes, nil
 }
 
-func composeNodesToSatisfyTargetPercent(percentTarget float32, targetedNodeCount int, startIndex int, clientUnderTest string, execClients, consClients []ClientVersion) ([]*network.Node, error) {
+func composeNodesToSatisfyTargetPercent(percentTarget float32, targetedNodeCount int, startIndex int, clientUnderTest string, execClients, consClients []ConsensusClientVersion) ([]*network.Node, error) {
 	// percent target is unconfigured
 	if percentTarget == 0 {
 		return []*network.Node{}, nil
@@ -108,7 +108,7 @@ func composeNodesToSatisfyTargetPercent(percentTarget float32, targetedNodeCount
 	return nodes, err
 }
 
-func pickExtraNodeClients(startNodeIndex, nodeCount int, clientUnderTest string, execClients, consClients []ClientVersion) ([]*network.Node, error) {
+func pickExtraNodeClients(startNodeIndex, nodeCount int, clientUnderTest string, execClients, consClients []ConsensusClientVersion) ([]*network.Node, error) {
 	var nodes []*network.Node
 	//execIndex := 0
 	//consIndex := 0
@@ -134,7 +134,7 @@ Exit:
 	return nodes, nil
 }
 
-func pickClient(startIndex int, clientUnderTest string, clients []ClientVersion) (ClientVersion, int, bool, error) {
+func pickClient(startIndex int, clientUnderTest string, clients []ConsensusClientVersion) (ConsensusClientVersion, int, bool, error) {
 	looped := false
 	for i := 0; i < len(clients); i++ {
 		c := clients[startIndex]
@@ -149,7 +149,7 @@ func pickClient(startIndex int, clientUnderTest string, clients []ClientVersion)
 			return c, startIndex, looped, nil
 		}
 	}
-	return ClientVersion{}, 0, looped, stacktrace.NewError("Unable to find any clients defined other than %s. Cannot add more nodes.", clientUnderTest)
+	return ConsensusClientVersion{}, 0, looped, stacktrace.NewError("Unable to find any clients defined other than %s. Cannot add more nodes.", clientUnderTest)
 }
 
 func calcNodesNeededToSatisfyTarget(percentTarget float32, targetedNodeCount int) (int, error) {

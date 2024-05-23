@@ -1,13 +1,14 @@
 package plan
 
 import (
+	"attacknet/cmd/internal/pkg/planner"
 	"attacknet/cmd/pkg/plan/suite"
 	"github.com/kurtosis-tech/stacktrace"
 	"gopkg.in/yaml.v3"
 	"os"
 )
 
-func validatePlannerFaultConfiguration(c PlannerConfig) error {
+func validatePlannerFaultConfiguration(c planner.Config) error {
 	// fault type
 	_, ok := suite.FaultTypes[c.FaultConfig.FaultType]
 	if !ok {
@@ -46,13 +47,13 @@ func validatePlannerFaultConfiguration(c PlannerConfig) error {
 	return nil
 }
 
-func LoadPlannerConfigFromPath(path string) (*PlannerConfig, error) {
+func LoadPlannerConfigFromPath(path string) (*planner.Config, error) {
 	bs, err := os.ReadFile(path)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "could not planner config on path %s", path)
 	}
 
-	var config PlannerConfig
+	var config planner.Config
 	err = yaml.Unmarshal(bs, &config)
 	if err != nil {
 		return nil, stacktrace.Propagate(err, "unable to unmarshal planner config from %s", path)

@@ -1,4 +1,4 @@
-package network
+package planner
 
 import (
 	"attacknet/cmd/internal/pkg/network"
@@ -12,7 +12,7 @@ const defaultValCpu = 500
 const defaultClMem = 1536
 const defaultValMem = 512
 
-func composeConsensusTesterNetwork(nodeMultiplier int, consensusClient string, execClientList []ClientVersion, consClientMap map[string]ClientVersion) ([]*network.Node, error) {
+func composeConsensusTesterNetwork(nodeMultiplier int, consensusClient string, execClientList []ConsensusClientVersion, consClientMap map[string]ConsensusClientVersion) ([]*network.Node, error) {
 	// make sure consensusClient actually exists
 	clientUnderTest, ok := consClientMap[consensusClient]
 	if !ok {
@@ -25,7 +25,7 @@ func composeConsensusTesterNetwork(nodeMultiplier int, consensusClient string, e
 	return nodes, err
 }
 
-func composeNodesForClTesting(nodeMultiplier, index int, consensusClient ClientVersion, execClients []ClientVersion) ([]*network.Node, error) {
+func composeNodesForClTesting(nodeMultiplier, index int, consensusClient ConsensusClientVersion, execClients []ConsensusClientVersion) ([]*network.Node, error) {
 	var nodes []*network.Node
 
 	for _, execClient := range execClients {
@@ -39,12 +39,12 @@ func composeNodesForClTesting(nodeMultiplier, index int, consensusClient ClientV
 	return nodes, nil
 }
 
-func composeConsensusClient(config ClientVersion) *network.ConsensusClient {
-	image := config.Image
+func composeConsensusClient(config ConsensusClientVersion) *network.ConsensusClient {
+	image := config.BeaconImage
 	validatorImage := ""
 
-	if strings.Contains(config.Image, ",") {
-		images := strings.Split(config.Image, ",")
+	if strings.Contains(config.BeaconImage, ",") {
+		images := strings.Split(config.BeaconImage, ",")
 		image = images[0]
 		validatorImage = images[1]
 	}
