@@ -26,7 +26,7 @@ func getKurtosisConfig(configPath string) (*Config, error) {
 }
 
 func forceKillDevnet(targetEnclaveName string) error {
-	kurtosisContext, err := getKurtosisContext()
+	kurtosisContext, err := GetKurtosisContext()
 	if err != nil {
 		return err
 	}
@@ -80,7 +80,7 @@ func TestGetTopologyFromRunningEnclave(t *testing.T) {
 	require.NoError(t, err)
 	matchingConfigTopology, err := ComposeTopologyFromConfig(runningEnclaveConfig)
 	require.NoError(t, err)
-	kurtosisContext, err := getKurtosisContext()
+	kurtosisContext, err := GetKurtosisContext()
 	require.NoError(t, err)
 	err = forceKillDevnet(runningEnclaveName)
 	require.NoError(t, err)
@@ -88,7 +88,7 @@ func TestGetTopologyFromRunningEnclave(t *testing.T) {
 	require.NoError(t, err)
 	err = service.prepareNewEnclaveAndStartDevnet(context.TODO())
 	require.NoError(t, err)
-	runningEnclaveContext, err := getEnclaveContext(context.TODO(), kurtosisContext, runningEnclaveName)
+	runningEnclaveContext, err := GetEnclaveContext(context.TODO(), kurtosisContext, runningEnclaveName)
 	topology, err := ComposeTopologyFromRunningEnclave(context.TODO(), runningEnclaveContext)
 	require.NoError(t, err)
 	isEqual := topology.IsEqual(matchingConfigTopology)
@@ -110,13 +110,13 @@ func TestAttachingToDifferentEnclave(t *testing.T) {
 
 	seperateConfigTopology, err := ComposeTopologyFromConfig(differentEnclaveConfig)
 	require.NoError(t, err)
-	kurtosisContext, err := getKurtosisContext()
+	kurtosisContext, err := GetKurtosisContext()
 	require.NoError(t, err)
 	service, err := NewService(context.TODO(), runningEnclaveConfig, kurtosisPackageID, runningEnclaveName)
 	require.NoError(t, err)
 	err = service.prepareNewEnclaveAndStartDevnet(context.TODO())
 	require.NoError(t, err)
-	runningEnclaveContext, err := getEnclaveContext(context.TODO(), kurtosisContext, runningEnclaveName)
+	runningEnclaveContext, err := GetEnclaveContext(context.TODO(), kurtosisContext, runningEnclaveName)
 	topology, err := ComposeTopologyFromRunningEnclave(context.TODO(), runningEnclaveContext)
 	require.NoError(t, err)
 	isEqual := topology.IsEqual(seperateConfigTopology)

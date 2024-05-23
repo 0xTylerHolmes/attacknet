@@ -27,7 +27,7 @@ type Service struct {
 // NewService creates a new kurtosis service. This service stores all information about the enclave of interest and the ethereum-package topology.
 func NewService(ctx context.Context, config *Config, kurtosisPackageID string, targetEnclaveName string) (*Service, error) {
 	log.Infof("Creating a new kurtosis service.")
-	kurtosisContext, err := getKurtosisContext()
+	kurtosisContext, err := GetKurtosisContext()
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func (s *Service) prepareNewEnclaveAndStartDevnet(ctx context.Context) error {
 // verifyRunningDevnet verifies that the running devnet is the one specified by the config file.
 // errors if the topologies don't match or there is an internal error.
 func (s *Service) verifyRunningDevnet(ctx context.Context) error {
-	enclaveContext, err := getEnclaveContext(ctx, s.kurtosisContext, s.enclaveName)
+	enclaveContext, err := GetEnclaveContext(ctx, s.kurtosisContext, s.enclaveName)
 	// verify devnet running
 	running, err := hasEnclaveStarted(enclaveContext)
 	if err != nil {

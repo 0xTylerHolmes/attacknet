@@ -26,13 +26,13 @@ func createEnclave(ctx context.Context, kurtosisContext *kurtosis_context.Kurtos
 	return kurtosisContext.CreateProductionEnclave(ctx, targetEnclaveName)
 }
 
-func getEnclaveContext(ctx context.Context, kurtosisContext *kurtosis_context.KurtosisContext, targetEnclaveName string) (*enclaves.EnclaveContext, error) {
-	log.Tracef("getEnclaveContext: getting context for target enclave: %s", targetEnclaveName)
+func GetEnclaveContext(ctx context.Context, kurtosisContext *kurtosis_context.KurtosisContext, targetEnclaveName string) (*enclaves.EnclaveContext, error) {
+	log.Tracef("GetEnclaveContext: getting context for target enclave: %s", targetEnclaveName)
 	return kurtosisContext.GetEnclaveContext(ctx, targetEnclaveName)
 }
 
-// getKurtosisContext fetches the context from the local kurtosis engine
-func getKurtosisContext() (*kurtosis_context.KurtosisContext, error) {
+// GetKurtosisContext fetches the context from the local kurtosis engine
+func GetKurtosisContext() (*kurtosis_context.KurtosisContext, error) {
 	kurtosisCtx, err := kurtosis_context.NewKurtosisContextFromLocalEngine()
 	if err != nil {
 		if strings.Contains(err.Error(), "connect: connection refused") {
@@ -46,7 +46,7 @@ func getKurtosisContext() (*kurtosis_context.KurtosisContext, error) {
 
 // from a running enclave extract all the service IDs that correspond to nodes
 func getViableNodeServiceIDs(ctx context.Context, enclaveContext *enclaves.EnclaveContext) ([]string, error) {
-	regexExpression := "(el|cl|vc)-\\d-\\w+-\\w+"
+	regexExpression := "(el|cl|vc)-\\d+-\\w+-\\w+"
 	var matchingServices []string
 
 	services, err := enclaveContext.GetServices()
@@ -163,6 +163,9 @@ func isExpectedDevnetRunning(ctx context.Context, config *Config, enclaveContext
 		return false, err
 	}
 	runningTopology, err := ComposeTopologyFromRunningEnclave(ctx, enclaveContext)
+	if err != nil {
+		return false, err
+	}
 	if err != nil {
 		return false, err
 	}
