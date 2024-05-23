@@ -141,8 +141,8 @@ func (te *TestExecutor) runWaitForDuration(step PlanStepWait) error {
 
 func waitForInjectionCompleted(ctx context.Context, session *chaos_mesh2.FaultSession) error {
 	// First, wait 10 seconds to allow chaos-mesh to inject into the cluster.
-	// If injection isn't complete after 10 seconds, something is  wrong and we should terminate.
-	timeoutAt := time.Now().Add(time.Second * 10)
+	// If injection isn't complete after 30 seconds, something is  wrong and we should terminate.
+	timeoutAt := time.Now().Add(time.Second * 30)
 
 	targetingGracePeriod := time.Now().Add(time.Second * 5)
 
