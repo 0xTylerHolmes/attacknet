@@ -193,7 +193,7 @@ func TargetSpecEnumToLambda(targetSelector TargetingSpec, isExecClient bool) (fu
 func filterNodesByExecClient(elClientType string) TargetCriteriaFilter {
 	return func(size AttackSize, targetableSetSize int, nodes []*network.Node) ([]*network.Node, error) {
 		criteria := func(n *network.Node) bool {
-			return n.Execution.Type == elClientType
+			return string(n.Execution.Type) == elClientType
 		}
 		targetableNodes := filterNodes(nodes, criteria)
 		if targetableNodes == nil {
@@ -206,7 +206,7 @@ func filterNodesByExecClient(elClientType string) TargetCriteriaFilter {
 func filterNodesByConsensusClient(clClientType string) TargetCriteriaFilter {
 	return func(size AttackSize, targetableSetSize int, nodes []*network.Node) ([]*network.Node, error) {
 		criteria := func(n *network.Node) bool {
-			return n.Consensus.Type == clClientType
+			return string(n.Consensus.Type) == clClientType
 		}
 		targetableNodes := filterNodes(nodes, criteria)
 
@@ -217,7 +217,7 @@ func filterNodesByConsensusClient(clClientType string) TargetCriteriaFilter {
 func filterNodesByClientCombo(elClientType, clClientType string) TargetCriteriaFilter {
 	return func(size AttackSize, targetableSetSize int, nodes []*network.Node) ([]*network.Node, error) {
 		criteria := func(n *network.Node) bool {
-			return n.Consensus.Type == clClientType && n.Execution.Type == elClientType
+			return string(n.Consensus.Type) == clClientType && string(n.Execution.Type) == elClientType
 		}
 		targetableNodes := filterNodes(nodes, criteria)
 

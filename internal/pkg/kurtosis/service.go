@@ -32,7 +32,7 @@ func NewService(ctx context.Context, config *Config, kurtosisPackageID string, t
 		return nil, err
 	}
 
-	configTopology, err := ComposeTopologyFromConfig(config)
+	configTopology, err := TopologyFromConfig(config)
 	if err != nil {
 		return nil, err
 	}

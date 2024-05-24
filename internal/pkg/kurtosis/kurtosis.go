@@ -158,11 +158,11 @@ func hasEnclaveStarted(enclaveContext *enclaves.EnclaveContext) (bool, error) {
 
 // isExpectedDevnetRunning checks if the devnet specified by service config is running in the target enclave
 func isExpectedDevnetRunning(ctx context.Context, config *Config, enclaveContext *enclaves.EnclaveContext) (bool, error) {
-	configTopology, err := ComposeTopologyFromConfig(config)
+	configTopology, err := TopologyFromConfig(config)
 	if err != nil {
 		return false, err
 	}
-	runningTopology, err := ComposeTopologyFromRunningEnclave(ctx, enclaveContext)
+	runningTopology, err := TopologyFromRunningEnclave(ctx, enclaveContext)
 	if err != nil {
 		return false, err
 	}

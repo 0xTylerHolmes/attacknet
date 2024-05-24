@@ -78,7 +78,7 @@ func TestGetTopologyFromRunningEnclave(t *testing.T) {
 	runningEnclaveConfigPath := exampleDevnet1
 	runningEnclaveConfig, err := getKurtosisConfig(runningEnclaveConfigPath)
 	require.NoError(t, err)
-	matchingConfigTopology, err := ComposeTopologyFromConfig(runningEnclaveConfig)
+	matchingConfigTopology, err := TopologyFromConfig(runningEnclaveConfig)
 	require.NoError(t, err)
 	kurtosisContext, err := GetKurtosisContext()
 	require.NoError(t, err)
@@ -89,7 +89,7 @@ func TestGetTopologyFromRunningEnclave(t *testing.T) {
 	err = service.prepareNewEnclaveAndStartDevnet(context.TODO())
 	require.NoError(t, err)
 	runningEnclaveContext, err := GetEnclaveContext(context.TODO(), kurtosisContext, runningEnclaveName)
-	topology, err := ComposeTopologyFromRunningEnclave(context.TODO(), runningEnclaveContext)
+	topology, err := TopologyFromRunningEnclave(context.TODO(), runningEnclaveContext)
 	require.NoError(t, err)
 	isEqual := topology.IsEqual(matchingConfigTopology)
 	if !isEqual {
@@ -108,7 +108,7 @@ func TestAttachingToDifferentEnclave(t *testing.T) {
 	differentEnclaveConfig, err := getKurtosisConfig(exampleDevnet0)
 	require.NoError(t, err)
 
-	seperateConfigTopology, err := ComposeTopologyFromConfig(differentEnclaveConfig)
+	seperateConfigTopology, err := TopologyFromConfig(differentEnclaveConfig)
 	require.NoError(t, err)
 	kurtosisContext, err := GetKurtosisContext()
 	require.NoError(t, err)
@@ -117,7 +117,7 @@ func TestAttachingToDifferentEnclave(t *testing.T) {
 	err = service.prepareNewEnclaveAndStartDevnet(context.TODO())
 	require.NoError(t, err)
 	runningEnclaveContext, err := GetEnclaveContext(context.TODO(), kurtosisContext, runningEnclaveName)
-	topology, err := ComposeTopologyFromRunningEnclave(context.TODO(), runningEnclaveContext)
+	topology, err := TopologyFromRunningEnclave(context.TODO(), runningEnclaveContext)
 	require.NoError(t, err)
 	isEqual := topology.IsEqual(seperateConfigTopology)
 	if !isEqual {

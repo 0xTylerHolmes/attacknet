@@ -13,14 +13,15 @@ import (
 
 //TODO: we currently don't test the validators for each service, do we need to do this?
 
-// ComposeTopology using the supplied kurtosis config file generate the expected network topology
-func ComposeTopologyFromConfig(config *Config) (*network.Topology, error) {
+// TopologyFromConfig using a kurtosis ethereum-package configuration file build a network topology.
+// This is the PREFERRED method of generating a topology.
+func TopologyFromConfig(config *Config) (*network.Topology, error) {
 	var topologyNodes []*network.Node
 	currNode := 0
 	for _, participant := range config.Participants {
 		for nodeNum := 0; nodeNum < participant.Count; nodeNum++ {
 			currNode += 1
-			node, err := composeTopologyNodeFromConfig(currNode, config.NetParams.NumValKeysPerNode, participant)
+			node, err := topologyNodeFromConfig(currNode, config.NetParams.NumValKeysPerNode, participant)
 			if err != nil {
 				return nil, err
 			}
@@ -31,14 +32,51 @@ func ComposeTopologyFromConfig(config *Config) (*network.Topology, error) {
 	return &network.Topology{Nodes: topologyNodes}, nil
 }
 
-func composeTopologyNodeFromConfig(ndx int, validatorsPerNode int, participant *Participant) (*network.Node, error) {
+func ParticipantsFromToplogy(topology *network.Topology) []*Participant {
+	var participants []*Participant
+	for _, node := range topology.Nodes {
+		p := &Participant{
+			ElClientType:  node.Execution.Type,
+			ClClientType:  node.Consensus.Type,
+			Count:         1,
+			ElClientImage: node.Execution.Image,
+			ELExtraLabels: node.Execution.ExtraLabels,
+			ClClientImage: node.Consensus.Image,
+			CLExtraLabels: node.Consensus.ExtraLabels,
+			CLSeparateVC:  &node.Consensus.HasValidatorSidecar,
+			// TODO
+			ElMinCpu:     node.Execution.CpuRequired,
+			ElMaxCpu:     nil,
+			ElMinMemory:  node.Execution.MemoryRequired,
+			ElMaxMemory:  nil,
+			ClMinCpu:     node.Consensus.CpuRequired,
+			ClMaxCpu:     nil,
+			ClMinMemory:  node.Consensus.MemoryRequired,
+			ClMaxMemory:  nil,
+			ValMaxCpu:    nil,
+			ValMaxMemory: nil,
+		}
 
-	consensusClient, err := composeConsensusClientFromParticipant(participant)
+		if node.Consensus.ValidatorClient != nil && node.Consensus.HasValidatorSidecar {
+			p.CLValidatorType = node.Consensus.ValidatorClient.Type
+			p.CLValidatorImage = node.Consensus.ValidatorClient.Image
+			p.VCExtraLabels = node.Consensus.ValidatorClient.ExtraLabels
+			p.ValMinCpu = node.Consensus.ValidatorClient.CpuRequired
+			p.ValMinMemory = node.Consensus.ValidatorClient.MemoryRequired
+		}
+		participants = append(participants, p)
+	}
+	return participants
+}
+
+func topologyNodeFromConfig(ndx int, validatorsPerNode int, participant *Participant) (*network.Node, error) {
+
+	consensusClient, err := ConsensusClientFromParticipant(participant)
 	if err != nil {
 		return nil, err
 	}
 
-	executionClient, err := composeExecutionClientFromParticipant(participant)
+	executionClient, err := ExecutionClientFromParticipant(participant)
 	if err != nil {
 		return nil, err
 	}
@@ -51,98 +89,57 @@ func composeTopologyNodeFromConfig(ndx int, validatorsPerNode int, participant *
 	}, nil
 }
 
-func composeConsensusClientFromParticipant(participant *Participant) (*network.ConsensusClient, error) {
-	consensusClient := &network.ConsensusClient{
-		Type: participant.ClClientType,
-		// TODO
-		//SidecarCpuRequired:    0,
-		//SidecarMemoryRequired: 0,
+func ExecutionClientFromParticipant(participant *Participant) (*network.ExecutionClient, error) {
+	executionClient := &network.ExecutionClient{
+		Type:           participant.ElClientType,
+		Image:          participant.ElClientImage,
+		CpuRequired:    participant.ElMinCpu,
+		MemoryRequired: participant.ElMinMemory,
+		ExtraLabels:    participant.ELExtraLabels,
 	}
-	if participant.ClClientImage == nil {
-		image, err := network.GetDefaultBeaconImage(participant.ClClientType)
-		if err != nil {
-			return nil, err
-		}
-		consensusClient.Image = image
+	// let the network implementation fix any issues
+	err := network.UpdateExecutionClientWithDefaults(executionClient)
+	return executionClient, err
+}
+
+// ConsensusClientFromParticipant given a participant generate a network.ConsensusClient,
+// also adds the default extra labels if they do not exist.
+func ConsensusClientFromParticipant(participant *Participant) (*network.ConsensusClient, error) {
+	consensusClient := &network.ConsensusClient{
+		Type:            participant.ClClientType,
+		Image:           participant.ClClientImage,
+		ExtraLabels:     participant.CLExtraLabels,
+		CpuRequired:     participant.ClMinCpu,
+		MemoryRequired:  participant.ClMinMemory,
+		ValidatorClient: nil,
 	}
 
+	// default to false
 	if participant.CLSeparateVC == nil {
-		// default to false
 		consensusClient.HasValidatorSidecar = false
 	} else {
 		consensusClient.HasValidatorSidecar = *participant.CLSeparateVC
 	}
 
-	//TODO do we really need this for basic topology information
-	//if participant.CLExtraLabels == nil {
-	//	consensusClient.ExtraLabels = make(map[string]string)
-	//} else {
-	//	consensusClient.ExtraLabels = participant.CLExtraLabels
-	//}
-
-	//TODO do we really need this for basic topology information
-	//consensusClient.CpuRequired = 1000
-	//consensusClient.MemoryRequired = 1024
-	//consensusClient.SidecarCpuRequired = 1000
-	//consensusClient.SidecarMemoryRequired = 1024
-
-	// populate validator sidecar information
 	if consensusClient.HasValidatorSidecar {
-		// check if there is a validator type to use
-		if participant.CLValidatorType != nil {
-			image, err := network.GetDefaultValidatorImage(*participant.CLValidatorType)
-			if err != nil {
-				return nil, err
-			}
-			consensusClient.ValidatorImage = image
-		} else {
-			// no validator type specified use the beacon type
-			image, err := network.GetDefaultValidatorImage(consensusClient.Type)
-			if err != nil {
-				return nil, err
-			}
-			consensusClient.ValidatorImage = image
+		validatorClient := &network.ValidatorClient{
+			Type:           participant.CLValidatorType,
+			Image:          participant.CLValidatorImage,
+			ExtraLabels:    participant.VCExtraLabels,
+			CpuRequired:    participant.ValMinCpu,
+			MemoryRequired: participant.ValMinMemory,
 		}
-		//TODO do we really need this for basic topology information
-		//if participant.VCExtraLabels == nil {
-		//	consensusClient.ValidatorExtraLabels = make(map[string]string)
-		//} else {
-		//	consensusClient.ValidatorExtraLabels = participant.VCExtraLabels
-		//}
+		consensusClient.ValidatorClient = validatorClient
 	}
 
-	return consensusClient, nil
+	err := network.UpdateConsensusClientWithDefaults(consensusClient)
+	return consensusClient, err
 }
 
-func composeExecutionClientFromParticipant(participant *Participant) (*network.ExecutionClient, error) {
-	executionClient := &network.ExecutionClient{
-		Type: participant.ElClientType,
-	}
-	if participant.ElClientImage == nil {
-		image, err := network.GetDefaultExecutionImage(participant.ElClientType)
-		if err != nil {
-			return nil, err
-		}
-		executionClient.Image = image
-	} else {
-		executionClient.Image = *participant.ElClientImage
-	}
-
-	//TODO do we really need this for basic topology information
-	//if participant.ELExtraLabels == nil {
-	//	executionClient.ExtraLabels = make(map[string]string)
-	//} else {
-	//	executionClient.ExtraLabels = participant.ELExtraLabels
-	//}
-	//TODO do we really need this for basic topology information
-	//executionClient.CpuRequired = 1000
-	//executionClient.MemoryRequired = 1024
-
-	return executionClient, nil
-}
-
+// TopologyFromRunningEnclave create a Topology of the running enclave we are attaching to.
+// DO NOT USE THIS if you have access to the original configuration file
 // hacky workaround until we can retrieve the starlark_run_config from a running enclave.
-func ComposeTopologyFromRunningEnclave(ctx context.Context, enclaveContext *enclaves.EnclaveContext) (*network.Topology, error) {
+func TopologyFromRunningEnclave(ctx context.Context, enclaveContext *enclaves.EnclaveContext) (*network.Topology, error) {
 	isRunning, err := hasEnclaveStarted(enclaveContext)
 	if err != nil {
 		return nil, err
@@ -166,7 +163,7 @@ func ComposeTopologyFromRunningEnclave(ctx context.Context, enclaveContext *encl
 			if err != nil {
 				return nil, err
 			}
-			executionClient, ndx, err := composeExecutionClientFromService(service)
+			executionClient, ndx, err := executionClientFromService(service)
 			els[ndx] = executionClient
 			continue
 		}
@@ -175,7 +172,7 @@ func ComposeTopologyFromRunningEnclave(ctx context.Context, enclaveContext *encl
 			if err != nil {
 				return nil, err
 			}
-			consensusClient, ndx, err := composeConsensusClientFromService(service)
+			consensusClient, ndx, err := consensusClientFromService(service)
 			cls[ndx] = consensusClient
 			continue
 		}
@@ -184,7 +181,7 @@ func ComposeTopologyFromRunningEnclave(ctx context.Context, enclaveContext *encl
 			if err != nil {
 				return nil, err
 			}
-			validatorClient, ndx, err := composeValidatorClientFromService(service)
+			validatorClient, ndx, err := validatorClientFromService(service)
 			//TODO multiple validator clients per cl (requires updated ethereum-package)
 			vcs[ndx] = validatorClient
 			continue
@@ -206,7 +203,7 @@ func ComposeTopologyFromRunningEnclave(ctx context.Context, enclaveContext *encl
 		}
 		consensusClient := &network.ConsensusClient{
 			Type: cl.Type,
-			//Image:               "", //undeterminable
+			//BeaconImage:               "", //undeterminable
 			//HasValidatorSidecar: false,
 			//ValidatorImage:      "", //undeterminable
 		}
@@ -215,7 +212,13 @@ func ComposeTopologyFromRunningEnclave(ctx context.Context, enclaveContext *encl
 			consensusClient.HasValidatorSidecar = false
 		} else {
 			consensusClient.HasValidatorSidecar = true
-			consensusClient.ValidatorType = vc.Type
+			consensusClient.ValidatorClient = &network.ValidatorClient{
+				Type:           vc.Type,
+				Image:          nil, // undeterminable
+				ExtraLabels:    nil, // undeterminable
+				CpuRequired:    nil, // undeterminable
+				MemoryRequired: nil, // undeterminable
+			}
 		}
 		node.Consensus = consensusClient
 		nodes = append(nodes, node)
@@ -223,8 +226,8 @@ func ComposeTopologyFromRunningEnclave(ctx context.Context, enclaveContext *encl
 	return &network.Topology{Nodes: nodes}, nil
 }
 
-// returns a pointer to a basic network.ExecutionClient and the associated node number
-func composeExecutionClientFromService(service *services.ServiceContext) (*network.ExecutionClient, int, error) {
+// using the service context of a running enclave create an ExecutionClient object
+func executionClientFromService(service *services.ServiceContext) (*network.ExecutionClient, int, error) {
 	serviceName := string(service.GetServiceName())
 	split := strings.Split(serviceName, "-")
 	nodeNumber, err := strconv.Atoi(split[1])
@@ -232,12 +235,13 @@ func composeExecutionClientFromService(service *services.ServiceContext) (*netwo
 		return nil, -1, err
 	}
 	return &network.ExecutionClient{
-		Type:  split[2],
-		Image: "", //non-determinable
+		Type:  network.ExecutionClientType(split[2]),
+		Image: nil, //non-determinable
 	}, nodeNumber, nil
 }
 
-func composeConsensusClientFromService(service *services.ServiceContext) (*network.ConsensusClient, int, error) {
+// using the service context in a running enclave create a ConsensusClient object
+func consensusClientFromService(service *services.ServiceContext) (*network.ConsensusClient, int, error) {
 	serviceName := string(service.GetServiceName())
 	split := strings.Split(serviceName, "-")
 	nodeNumber, err := strconv.Atoi(split[1])
@@ -245,24 +249,25 @@ func composeConsensusClientFromService(service *services.ServiceContext) (*netwo
 		return nil, -1, err
 	}
 	return &network.ConsensusClient{
-		Type:  split[2],
-		Image: "", //non-determinable
+		Type: network.ConsensusClientType(split[2]),
+		//Image: "", //non-determinable
 		//HasValidatorSidecar: false,
 		//ValidatorImage:      "",
 	}, nodeNumber, nil
 }
 
-// TODO multiple validator clients
-func composeValidatorClientFromService(service *services.ServiceContext) (*network.ValidatorClient, int, error) {
+// using a service context in a running enclave create a ValidatorClient object
+func validatorClientFromService(service *services.ServiceContext) (*network.ValidatorClient, int, error) {
 	serviceName := string(service.GetServiceName())
 	split := strings.Split(serviceName, "-")
 	nodeNumber, err := strconv.Atoi(split[1])
 	if err != nil {
 		return nil, -1, err
 	}
+	sideCarType := network.ConsensusClientType(split[2])
 	return &network.ValidatorClient{
-		Type:  split[2],
-		Image: "", //non-determinable
+		Type: &sideCarType,
+		//Image: "", //non-determinable
 		//HasValidatorSidecar: false,
 		//ValidatorImage:      "",
 	}, nodeNumber, nil

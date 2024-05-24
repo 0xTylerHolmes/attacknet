@@ -1,6 +1,9 @@
 package kurtosis
 
-import "gopkg.in/yaml.v3"
+import (
+	"attacknet/cmd/internal/pkg/network"
+	"gopkg.in/yaml.v3"
+)
 
 type Config struct {
 	Participants        []*Participant `yaml:"participants"`
@@ -9,11 +12,6 @@ type Config struct {
 	ParallelKeystoreGen bool           `yaml:"parallel_keystore_generation"`
 	Persistent          bool           `yaml:"persistent"`
 	DisablePeerScoring  bool           `yaml:"disable_peer_scoring"`
-}
-
-func (n Config) String() string {
-	bytes, _ := yaml.Marshal(n)
-	return string(bytes)
 }
 
 type GenesisConfig struct {
@@ -36,8 +34,8 @@ type GenesisConfig struct {
 // so we can determine if they were set.
 type Participant struct {
 	// required fields
-	ElClientType string `yaml:"el_type"`
-	ClClientType string `yaml:"cl_type"`
+	ElClientType network.ExecutionClientType `yaml:"el_type"`
+	ClClientType network.ConsensusClientType `yaml:"cl_type"`
 
 	Count int `yaml:"count"`
 	// all other fields are optional and will be populated with defaults defined in kurtosis
@@ -48,10 +46,10 @@ type Participant struct {
 	CLExtraLabels map[string]string `yaml:"cl_extra_labels,omitempty"`
 
 	//Sidecars, these are optional
-	CLSeparateVC     *bool             `yaml:"use_separate_vc,omitempty"`
-	CLValidatorType  *string           `yaml:"vc_type,omitempty"`
-	CLValidatorImage *string           `yaml:"vc_image,omitempty"`
-	VCExtraLabels    map[string]string `yaml:"vc_extra_labels,omitempty"`
+	CLSeparateVC     *bool                        `yaml:"use_separate_vc,omitempty"`
+	CLValidatorType  *network.ConsensusClientType `yaml:"vc_type,omitempty"`
+	CLValidatorImage *string                      `yaml:"vc_image,omitempty"`
+	VCExtraLabels    map[string]string            `yaml:"vc_extra_labels,omitempty"`
 
 	// resource requirements are optional
 	ElMinCpu    *int `yaml:"el_min_cpu,omitempty"`
@@ -68,4 +66,9 @@ type Participant struct {
 	ValMaxCpu    *int `yaml:"vc_max_cpu,omitempty"`
 	ValMinMemory *int `yaml:"vc_min_mem,omitempty"`
 	ValMaxMemory *int `yaml:"vc_max_mem,omitempty"`
+}
+
+func (n Config) String() string {
+	bytes, _ := yaml.Marshal(n)
+	return string(bytes)
 }
