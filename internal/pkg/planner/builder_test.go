@@ -24,7 +24,7 @@ func TestPlannerRunThrough(t *testing.T) {
 	plannerConfig, err := getPlannerConfig(filePath)
 	require.NoError(t, err)
 	service, err := NewBuilder(plannerConfig)
-
+	require.NoError(t, err)
 	_, _, err = service.BuildPlan()
 	require.NoError(t, err)
 

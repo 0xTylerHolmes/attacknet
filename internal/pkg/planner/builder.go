@@ -90,7 +90,7 @@ func NewBuilder(config *Config) (*Builder, error) {
 	}
 	log.Debugf("builder calculated the target network size to be: %d nodes", targetNetworkSize)
 
-	service := &Builder{
+	return &Builder{
 		config:                  config,
 		nodes:                   make([]*network.Node, 0),
 		targetNetworkSize:       targetNetworkSize,
@@ -98,9 +98,7 @@ func NewBuilder(config *Config) (*Builder, error) {
 		definedExecutionClients: definedEls,
 		targetExecutionClients:  targetEls,
 		targetConsensusClients:  targetCLs,
-	}
-
-	return service, nil
+	}, nil
 }
 
 // populates the builder with random nodes excluding the supplied el/cl types. errors if there aren't enough type definitions to perform the matchings

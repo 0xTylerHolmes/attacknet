@@ -51,12 +51,12 @@ type TargetNetworkTopology struct {
 
 type ExecutionClientVersion struct {
 	Type  network.ExecutionClientType `yaml:"type"`
-	Image *string                     `yaml:"el_image"`
+	Image *string                     `yaml:"image"`
 }
 
 type ConsensusClientVersion struct {
 	Type           network.ConsensusClientType  `yaml:"type"`
-	BeaconImage    *string                      `yaml:"cl_image"`
+	BeaconImage    *string                      `yaml:"image"`
 	ValidatorType  *network.ConsensusClientType `yaml:"vc_type"`
 	ValidatorImage *string                      `yaml:"vc_image"`
 	HasSidecar     *bool                        `yaml:"has_sidecar"`
@@ -102,6 +102,15 @@ func validatePlannerFaultConfiguration(config *Config) error {
 		_, err := config.getConsensusClientVersionForType(network.ConsensusClientType(config.FaultConfig.TargetClient))
 		if err != nil {
 			return stacktrace.NewError(err.Error())
+		}
+	}
+
+	// check that all cl participants that have a vc_image tag also have a vc_type
+	for _, version := range config.ConsensusClients {
+		if version.ValidatorImage != nil {
+			if version.ValidatorType == nil {
+				return errors.New(fmt.Sprintf("invalid version for client type: %s, if vc_image is specified then vc_type must be also", version.Type))
+			}
 		}
 	}
 	return nil

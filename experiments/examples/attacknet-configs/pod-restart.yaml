@@ -120,7 +120,6 @@ chaos_config:
           selector:
             labelSelectors:
               kurtosistech.com.custom/ethereum-package.partition: partitionA
-          duration: 30s
 
 
 

@@ -1,34 +1,34 @@
 execution:
-  - name: geth
+  - type: geth
     image: ethereum/client-go:v1.13.14
-  - name: reth
+  - type: reth
     image: parithoshj/reth:main-1a8440a-debug
-  - name: erigon
+  - type: erigon
     image: thorax/erigon:v2.58.4
-  - name: nethermind
+  - type: nethermind
     image: nethermind/nethermind:1.25.4
-  - name: besu
+  - type: besu
     image: hyperledger/besu:24.3.0
 consensus:
-  - name: lighthouse
+  - type: lighthouse
     image: sigp/lighthouse:v5.1.1
     has_sidecar: true
-  - name: prysm
-    image: gcr.io/prysmaticlabs/prysm/beacon-chain:v5.0.1,gcr.io/prysmaticlabs/prysm/validator:v5.0.1
+  - type: prysm
+    image: gcr.io/prysmaticlabs/prysm/beacon-chain:v5.0.1
+    vc_type: prysm
+    vc_image: gcr.io/prysmaticlabs/prysm/validator:v5.0.1
     has_sidecar: true
-  - name: teku
+  - type: teku
     image: consensys/teku:24.3.0-amd64
     has_sidecar: false
-  - name: lodestar
+  - type: lodestar
     image: chainsafe/lodestar:v1.17.0
     has_sidecar: true
   # https://github.com/kurtosis-tech/ethereum-package/issues/417
-  - name: nimbus
+  - type: nimbus
     image: statusim/nimbus-eth2:multiarch-v24.2.2
     has_sidecar: false
-topology:
-  bootnode_el: geth
-  bootnode_cl: prysm
+target_network_topology:
   target_node_multiplier: 1
   targets_as_percent_of_network: 0.40
 network_params:
