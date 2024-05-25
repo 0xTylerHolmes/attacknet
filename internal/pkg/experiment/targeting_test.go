@@ -1,7 +1,7 @@
 package experiment
 
 import (
-	"attacknet/cmd/pkg/plan/network"
+	"attacknet/cmd/internal/pkg/network"
 	"testing"
 )
 
