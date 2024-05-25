@@ -1,45 +1,43 @@
-package suite
+package experiment
 
 import (
 	"attacknet/cmd/internal/pkg/chaos"
-	"attacknet/cmd/internal/pkg/network"
 	"fmt"
 	"github.com/kurtosis-tech/stacktrace"
-	log "github.com/sirupsen/logrus"
 	"time"
 )
 
-type clientType string
-
-const (
-	Execution clientType = "execution"
-	Consensus clientType = "consensus"
-	Validator clientType = "validator"
-)
-
-func ConvertToNodeIdTag(networkNodeCount int, node *network.Node, client clientType) string {
-	nodeNumStr := ""
-
-	if networkNodeCount < 10 {
-		nodeNumStr = fmt.Sprintf("%d", node.Index)
-	} else if networkNodeCount < 100 {
-		nodeNumStr = fmt.Sprintf("%02d", node.Index)
-	} else {
-		nodeNumStr = fmt.Sprintf("%03d", node.Index)
-	}
-
-	switch client {
-	case Execution:
-		return fmt.Sprintf("el-%s-%s-%s", nodeNumStr, node.Execution.Type, node.Consensus.Type)
-	case Consensus:
-		return fmt.Sprintf("cl-%s-%s-%s", nodeNumStr, node.Consensus.Type, node.Execution.Type)
-	case Validator:
-		return fmt.Sprintf("vc-%s-%s-%s", nodeNumStr, node.Consensus.Type, node.Execution.Type)
-	default:
-		log.Errorf("Unrecognized node type %s", client)
-		return ""
-	}
-}
+//type clientType string
+//
+//const (
+//	Execution clientType = "execution"
+//	Consensus clientType = "consensus"
+//	Validator clientType = "validator"
+//)
+//
+//func ConvertToNodeIdTag(networkNodeCount int, node *network.Node, client clientType) string {
+//	nodeNumStr := ""
+//
+//	if networkNodeCount < 10 {
+//		nodeNumStr = fmt.Sprintf("%d", node.Index)
+//	} else if networkNodeCount < 100 {
+//		nodeNumStr = fmt.Sprintf("%02d", node.Index)
+//	} else {
+//		nodeNumStr = fmt.Sprintf("%03d", node.Index)
+//	}
+//
+//	switch client {
+//	case Execution:
+//		return fmt.Sprintf("el-%s-%s-%s", nodeNumStr, node.Execution.Type, node.Consensus.Type)
+//	case Consensus:
+//		return fmt.Sprintf("cl-%s-%s-%s", nodeNumStr, node.Consensus.Type, node.Execution.Type)
+//	case Validator:
+//		return fmt.Sprintf("vc-%s-%s-%s", nodeNumStr, node.Consensus.Type, node.Execution.Type)
+//	default:
+//		log.Errorf("Unrecognized node type %s", client)
+//		return ""
+//	}
+//}
 
 func composeWaitForFaultCompletionStep() *chaos.PlanStep {
 	return &chaos.PlanStep{StepType: chaos.WaitForFaultCompletion, StepDescription: "wait for faults to terminate"}

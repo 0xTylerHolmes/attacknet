@@ -2,9 +2,9 @@ package planner
 
 import (
 	"attacknet/cmd/internal/pkg/chaos"
+	"attacknet/cmd/internal/pkg/experiment"
 	"attacknet/cmd/internal/pkg/kurtosis"
 	"attacknet/cmd/internal/pkg/network"
-	"attacknet/cmd/pkg/plan/suite"
 	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
@@ -191,7 +191,7 @@ func (s *Builder) BuildPlan() (*chaos.Config, *kurtosis.Config, error) {
 
 	topology := &network.Topology{Nodes: s.nodes}
 
-	tests, err := suite.ComposeTestSuite(s.config.FaultConfig, s.config.isExecutionClientTest(), topology.Nodes)
+	tests, err := experiment.ComposeTestSuite(s.config.FaultConfig, s.config.isExecutionClientTest(), topology.Nodes)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -1,4 +1,4 @@
-package suite
+package experiment
 
 import (
 	"attacknet/cmd/pkg/plan/network"

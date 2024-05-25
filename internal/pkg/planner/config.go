@@ -1,9 +1,9 @@
 package planner
 
 import (
+	"attacknet/cmd/internal/pkg/experiment"
 	"attacknet/cmd/internal/pkg/kurtosis"
 	"attacknet/cmd/internal/pkg/network"
-	"attacknet/cmd/pkg/plan/suite"
 	"errors"
 	"fmt"
 	"github.com/kurtosis-tech/stacktrace"
@@ -20,9 +20,9 @@ type Config struct {
 	TargetNetworkTopology TargetNetworkTopology     `yaml:"target_network_topology"`
 	GenesisParams         kurtosis.GenesisConfig    `yaml:"network_params"`
 	//TODO do we really need this?
-	KurtosisPackage     string                          `yaml:"kurtosis_package"`
-	KubernetesNamespace string                          `yaml:"kubernetes_namespace"`
-	FaultConfig         suite.PlannerFaultConfiguration `yaml:"fault_config"`
+	KurtosisPackage     string                               `yaml:"kurtosis_package"`
+	KubernetesNamespace string                               `yaml:"kubernetes_namespace"`
+	FaultConfig         experiment.PlannerFaultConfiguration `yaml:"fault_config"`
 }
 
 func (c *Config) isExecutionClientTest() bool {
@@ -65,24 +65,24 @@ type ConsensusClientVersion struct {
 // checks the fault parameters to ensure they are supported
 func validatePlannerFaultConfiguration(config *Config) error {
 	// fault type
-	_, ok := suite.FaultTypes[config.FaultConfig.FaultType]
+	_, ok := experiment.FaultTypes[config.FaultConfig.FaultType]
 	if !ok {
-		return stacktrace.NewError("the fault type '%s' is not supported. Supported faults: %v", config.FaultConfig.FaultType, suite.FaultTypesList)
+		return stacktrace.NewError("the fault type '%s' is not supported. Supported faults: %v", config.FaultConfig.FaultType, experiment.FaultTypesList)
 	}
 
 	// targeting dimensions
 	for _, spec := range config.FaultConfig.TargetingDimensions {
-		_, ok := suite.TargetingSpecs[spec]
+		_, ok := experiment.TargetingSpecs[spec]
 		if !ok {
-			return stacktrace.NewError("the fault targeting dimension %s is not supported. Supported dimensions: %v", spec, suite.TargetingSpecList)
+			return stacktrace.NewError("the fault targeting dimension %s is not supported. Supported dimensions: %v", spec, experiment.TargetingSpecList)
 		}
 	}
 
 	// attack size dimensions
 	for _, attackSize := range config.FaultConfig.AttackSizeDimensions {
-		_, ok := suite.AttackSizes[attackSize]
+		_, ok := experiment.AttackSizes[attackSize]
 		if !ok {
-			return stacktrace.NewError("the attack size dimension %s is not supported. Supported dimensions: %v", attackSize, suite.AttackSizesList)
+			return stacktrace.NewError("the attack size dimension %s is not supported. Supported dimensions: %v", attackSize, experiment.AttackSizesList)
 		}
 	}
 

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/enclaves"
 	"github.com/kurtosis-tech/kurtosis/api/golang/core/lib/services"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -271,4 +272,30 @@ func validatorClientFromService(service *services.ServiceContext) (*network.Vali
 		//HasValidatorSidecar: false,
 		//ValidatorImage:      "",
 	}, nodeNumber, nil
+}
+
+// TODO: pr into kurtosis to make numbering standard
+func GetNodeExecutionServiceId(node *network.Node, numNodes int) string {
+	format := fmt.Sprintf("%%0%dd", int(math.Ceil(math.Log10(float64(numNodes)))))
+	numStr := fmt.Sprintf(format, node.Index)
+	return fmt.Sprintf("el-%s-%s-%s", numStr, node.Execution.Type, node.Consensus.Type)
+}
+
+func GetNodeConsensusServiceId(node *network.Node, numNodes int) string {
+	format := fmt.Sprintf("%%0%dd", int(math.Ceil(math.Log10(float64(numNodes)))))
+	numStr := fmt.Sprintf(format, node.Index)
+	return fmt.Sprintf("cl-%s-%s-%s", numStr, node.Consensus.Type, node.Execution.Type)
+}
+
+// note this will just generate one
+func GetNodeValidatorServiceId(node *network.Node, numNodes int) (string, error) {
+	if node.Consensus.ValidatorClient == nil {
+		return "error", errors.New("cant get node validators service id, node does not have a validator client")
+	}
+	if node.Consensus.ValidatorClient.Type == nil {
+		return "error", errors.New("can't get node validators service id, node type is nil, this should not occur, PLEASE REPORT ISSUE	")
+	}
+	format := fmt.Sprintf("%%0%dd", int(math.Ceil(math.Log10(float64(numNodes)))))
+	numStr := fmt.Sprintf(format, node.Index)
+	return fmt.Sprintf("vc-%s-%s-%s", numStr, *node.Consensus.ValidatorClient.Type, node.Execution.Type), nil
 }

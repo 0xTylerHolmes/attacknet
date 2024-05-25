@@ -1,7 +1,8 @@
-package suite
+package experiment
 
 import (
 	"attacknet/cmd/internal/pkg/chaos"
+	"attacknet/cmd/internal/pkg/kurtosis"
 	"attacknet/cmd/internal/pkg/network"
 	"fmt"
 	"github.com/kurtosis-tech/stacktrace"
@@ -114,14 +115,18 @@ func chooseTargetsUsingAttackSize(size AttackSize, networkSize int, targetable [
 func createTargetSelectorForNode(networkNodeCount int, node *network.Node) *ChaosTargetSelector {
 	var targets []string
 
-	elId := ConvertToNodeIdTag(networkNodeCount, node, Execution)
+	elId := kurtosis.GetNodeExecutionServiceId(node, networkNodeCount)
 	targets = append(targets, elId)
 
-	clId := ConvertToNodeIdTag(networkNodeCount, node, Consensus)
+	clId := kurtosis.GetNodeConsensusServiceId(node, networkNodeCount)
 	targets = append(targets, clId)
 
 	if node.Consensus.HasValidatorSidecar {
-		valId := ConvertToNodeIdTag(networkNodeCount, node, Validator)
+		valId, err := kurtosis.GetNodeValidatorServiceId(node, networkNodeCount)
+		if err != nil {
+			// should not occur
+			panic(err.Error())
+		}
 		targets = append(targets, valId)
 	}
 
@@ -139,7 +144,7 @@ func createTargetSelectorForNode(networkNodeCount int, node *network.Node) *Chao
 }
 
 func createTargetSelectorForExecClient(networkNodeCount int, node *network.Node) *ChaosTargetSelector {
-	elId := ConvertToNodeIdTag(networkNodeCount, node, Execution)
+	elId := kurtosis.GetNodeExecutionServiceId(node, networkNodeCount)
 	selector := chaos.ChaosExpressionSelector{
 		Key:      "kurtosistech.com/id",
 		Operator: "In",
@@ -155,11 +160,15 @@ func createTargetSelectorForExecClient(networkNodeCount int, node *network.Node)
 
 func createTargetSelectorForConsensusClient(networkNodeCount int, node *network.Node) *ChaosTargetSelector {
 	var targets []string
-	clId := ConvertToNodeIdTag(networkNodeCount, node, Consensus)
+	clId := kurtosis.GetNodeConsensusServiceId(node, networkNodeCount)
 	targets = append(targets, clId)
 
 	if node.Consensus.HasValidatorSidecar {
-		valId := ConvertToNodeIdTag(networkNodeCount, node, Validator)
+		valId, err := kurtosis.GetNodeValidatorServiceId(node, networkNodeCount)
+		if err != nil {
+			// should not occur
+			panic(err.Error())
+		}
 		targets = append(targets, valId)
 	}
 
