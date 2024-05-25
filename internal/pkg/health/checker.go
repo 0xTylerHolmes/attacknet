@@ -3,9 +3,9 @@ package health
 import (
 	confTypes "attacknet/cmd/internal/pkg/chaos"
 	"attacknet/cmd/internal/pkg/chaos/chaos-mesh"
+	"attacknet/cmd/internal/pkg/health/ethereum"
+	"attacknet/cmd/internal/pkg/health/types"
 	"attacknet/cmd/internal/pkg/kubernetes"
-	"attacknet/cmd/pkg/health/ethereum"
-	"attacknet/cmd/pkg/health/types"
 	"context"
 	"github.com/kurtosis-tech/stacktrace"
 	log "github.com/sirupsen/logrus"

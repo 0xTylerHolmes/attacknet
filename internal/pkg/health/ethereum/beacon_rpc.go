@@ -1,8 +1,8 @@
 package ethereum
 
 import (
+	"attacknet/cmd/internal/pkg/health/types"
 	"attacknet/cmd/internal/pkg/kubernetes"
-	"attacknet/cmd/pkg/health/types"
 	"context"
 	"encoding/hex"
 	"errors"

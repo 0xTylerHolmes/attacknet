@@ -1,11 +1,11 @@
 package attacknet
 
 import (
+	"attacknet/cmd/internal/pkg/artifacts"
 	"attacknet/cmd/internal/pkg/chaos"
+	"attacknet/cmd/internal/pkg/health"
 	"attacknet/cmd/internal/pkg/kurtosis"
-	"attacknet/cmd/pkg/artifacts"
-	"attacknet/cmd/pkg/health"
-	"attacknet/cmd/pkg/test_executor"
+	"attacknet/cmd/internal/pkg/test_executor"
 	"context"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
@@ -121,7 +121,5 @@ func (s *Service) StartExperiment(ctx context.Context) error {
 		return err
 	}
 
-	//TODO: do we really need to destroy the enclave?
-	//return s.KurtosisService.DestroyEnclave(ctx)
 	return nil
 }

@@ -2,12 +2,12 @@ package ethereum
 
 import (
 	"attacknet/cmd/internal/pkg/chaos/chaos-mesh"
+	"attacknet/cmd/internal/pkg/health/types"
 	"attacknet/cmd/internal/pkg/kubernetes"
 	"context"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
-import "attacknet/cmd/pkg/health/types"
 
 type EthNetworkChecker struct {
 	kubeClient           *kubernetes.KubeClient

@@ -3,8 +3,8 @@ package artifacts
 import (
 	"attacknet/cmd/internal/pkg/chaos"
 	chaosMesh "attacknet/cmd/internal/pkg/chaos/chaos-mesh"
-	"attacknet/cmd/pkg/health"
-	healthTypes "attacknet/cmd/pkg/health/types"
+	"attacknet/cmd/internal/pkg/health"
+	healthTypes "attacknet/cmd/internal/pkg/health/types"
 	"errors"
 	"fmt"
 	"github.com/kurtosis-tech/stacktrace"
